@@ -101,7 +101,9 @@ function ModelChip({ onClick }: { onClick: () => void }) {
   const label = {
     off: 'Rules only',
     idle: 'AI model: not loaded',
-    loading: model.progress > 0 && model.progress < 100 ? `Loading model ${Math.round(model.progress)}%` : `Preparing model ${elapsed}s`,
+    loading: model.fromDevice
+      ? `Loading model from this device ${elapsed}s`
+      : model.progress > 0 && model.progress < 100 ? `Downloading model ${Math.round(model.progress)}%` : `Preparing model ${elapsed}s`,
     ready: `AI model: ${name}`,
     error: 'Model failed · rules only',
   }[model.status];

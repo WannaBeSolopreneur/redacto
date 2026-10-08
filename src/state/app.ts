@@ -7,6 +7,7 @@ import type { Area, ExportResult, LoadedDoc } from '../formats/types';
 import { csvLiteral, tableEntities, tableStructural, type TableCell, type TableData } from '../formats/table';
 import { classifyColumn } from '../formats/columns';
 import { FALLBACK_MODEL, getModel, IS_PHONE, MODELS } from '../ml/models';
+import { isModelDownloaded } from '../ml/cache';
 import { loadNer, onNerProgress, runNer, type LoadInfo } from '../ml/ner';
 import type { TableScanProgress } from '../ml/table-scan';
 import { createStore } from './store';
@@ -21,6 +22,8 @@ export interface ModelState {
   activeId: string | null;
   progress: number;
   startedAt: number | null;
+  /** The model being loaded is already stored on this device (no download). */
+  fromDevice: boolean;
   info: LoadInfo | null;
   lastRunMs: number | null;
   notice: string | null;
@@ -129,6 +132,7 @@ export const store = createStore<AppState>({
     activeId: null,
     progress: 0,
     startedAt: null,
+    fromDevice: false,
     info: null,
     lastRunMs: null,
     notice: null,
@@ -362,6 +366,7 @@ export function ensureModel(): Promise<string> {
     let lastErr: unknown;
     for (const id of attempts) {
       try {
+        setModel({ fromDevice: await isModelDownloaded(getModel(id)).catch(() => false) });
         markLoading(id);
         // One thread on phones: less memory, and multi-threaded WebAssembly has crashed iOS Safari.
         const info = await loadNer(id, IS_PHONE ? { threads: 1 } : undefined);

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ENTITY_LABELS, ENTITY_TYPES } from '../core/types';
 import { MODELS } from '../ml/models';
+import { downloadedModels, removeModel } from '../ml/cache';
 import { clearAll, ensureModel, resetSettings, retryModel, store, updateSettings } from '../state/app';
 import { useSlice } from '../state/store';
 import { Spinner } from './brand';
@@ -35,6 +36,14 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
   // The slider moves freely; the (whole-document) re-filter runs once, on release.
   const [threshold, setThreshold] = useState(settings.minScore);
   useEffect(() => setThreshold(settings.minScore), [settings.minScore]);
+  // Which models are stored on this device, re-read when the drawer opens and when a load finishes.
+  const [stored, setStored] = useState<Map<string, number>>(new Map());
+  const refreshStored = () => void downloadedModels().then(setStored).catch(() => {});
+  useEffect(() => {
+    if (open) refreshStored();
+  }, [open, model.status, model.activeId]);
+  const mb = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
+  const total = [...stored.values()].reduce((a, b) => a + b, 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -66,11 +75,28 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
                   )}
                 >
                   <RadioGroupItem id={m.id} value={m.id} className="mt-0.5" />
-                  <span className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">
-                      {m.name} <span className="font-normal text-muted-foreground">· {m.sizeMB} MB</span>
-                    </span>
+                  <span className="flex flex-1 flex-col gap-0.5">
+                    <span className="text-sm font-medium">{m.name}</span>
                     <span className="text-xs text-muted-foreground">{m.description}</span>
+                    {stored.has(m.id) ? (
+                      <span className="mt-1 flex items-center gap-2 text-xs text-teal-700">
+                        <span className="size-1.5 bg-teal" aria-hidden /> On this device · {mb(stored.get(m.id)!)}
+                        <button
+                          type="button"
+                          className="ml-auto text-muted-foreground underline-offset-2 hover:text-destructive hover:underline disabled:opacity-40"
+                          disabled={model.status === 'loading'}
+                          aria-label={`Remove ${m.name} from this device`}
+                          onClick={(e) => {
+                            e.preventDefault(); // don't select the model
+                            void removeModel(m.id).then(refreshStored);
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="mt-1 text-xs text-muted-foreground">Downloads {m.sizeMB} MB the first time it's used</span>
+                    )}
                   </span>
                 </Label>
               ))}
@@ -82,7 +108,10 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
                 )}
                 {model.status === 'loading' && (
                   <span className="flex items-center gap-2">
-                    <Spinner /> {model.progress > 0 && model.progress < 100 ? `Downloading ${Math.round(model.progress)}%` : `Preparing… ${elapsed}s`}
+                    <Spinner />{' '}
+                    {model.fromDevice
+                      ? `Loading from this device… ${elapsed}s`
+                      : model.progress > 0 && model.progress < 100 ? `Downloading ${Math.round(model.progress)}%` : `Preparing… ${elapsed}s`}
                   </span>
                 )}
                 {model.status === 'ready' && model.info && (
@@ -103,7 +132,11 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
                     Running on one CPU thread because the page isn't cross-origin isolated (COOP/COEP headers missing). See README → Hosting.
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">The model is downloaded once from this site and cached by your browser.</p>
+                <p className="text-xs text-muted-foreground">
+                  {stored.size
+                    ? `${stored.size} model${stored.size > 1 ? 's' : ''} on this device · ${mb(total)}. Each model downloads once, then loads from your device.`
+                    : 'Each model downloads once from this site, then loads from your device.'}
+                </p>
               </div>
             )}
           </Section>
