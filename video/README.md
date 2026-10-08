@@ -1,6 +1,6 @@
 # Redacto demo film
 
-About 37 s (SPEED 1.15 in timing.js), 1920x1080, 30 fps, with voice-over: the lab-report story, how it works (open-source models, quantised, offline), "trust the code", and the tagline. Rendered from code: no video editor, no stock footage, no sample files.
+About 38 s (SPEED 1.15 in timing.js), 1920x1080, 30 fps, with voice-over: the lab-report story, how it works (open-source models, quantised, offline), "trust the code", and the tagline. Rendered from code: no video editor, no stock footage, no sample files.
 
     python3 -m venv .venv && .venv/bin/pip install numpy pillow playwright   # once
     .venv/bin/python vo/make_take.py 7                       # only to re-record: vo/script.txt -> vo/take_N.mp3 + word times (set TAKE in timing.js)

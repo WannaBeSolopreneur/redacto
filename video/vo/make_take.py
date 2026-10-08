@@ -8,7 +8,8 @@ import base64, json, os, pathlib, sys, urllib.request
 
 VOICE = "kPzsL2i3teMYv0FxEYQ6"
 MODEL = "eleven_v4"
-TEXT = pathlib.Path(__file__).with_name("script.txt").read_text().strip()
+# SCRIPT=<file> records a different text (e.g. one line to splice in); default vo/script.txt.
+TEXT = pathlib.Path(os.environ.get("SCRIPT") or pathlib.Path(__file__).with_name("script.txt")).read_text().strip()
 HERE = pathlib.Path(__file__).parent
 
 
@@ -30,8 +31,8 @@ req = urllib.request.Request(
     f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE}/with-timestamps?output_format=mp3_44100_192",
     data=json.dumps(body).encode(), headers={"xi-api-key": key(), "Content-Type": "application/json"})
 d = json.load(urllib.request.urlopen(req))
-(HERE / f"take_{seed}.mp3").write_bytes(base64.b64decode(d["audio_base64"]))
-json.dump(d["alignment"], open(HERE / f"take_{seed}.json", "w"))
+(HERE / f"{os.environ.get('OUT', 'take')}_{seed}.mp3").write_bytes(base64.b64decode(d["audio_base64"]))
+json.dump(d["alignment"], open(HERE / f"{os.environ.get('OUT', 'take')}_{seed}.json", "w"))
 
 a = d["alignment"]
 w, ws, pe = "", None, 0.0
