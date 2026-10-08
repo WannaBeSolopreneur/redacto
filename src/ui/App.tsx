@@ -17,6 +17,7 @@ export default function App() {
   const dragging = useGlobalFileDrop();
   usePasteFiles();
   useToasts();
+  useLeaveWarning(hasDocs);
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -37,6 +38,19 @@ export default function App() {
       <Toaster position="bottom-center" richColors closeButton />
     </TooltipProvider>
   );
+}
+
+/**
+ * Documents live only in this tab's memory. While any are open, leaving (the logo, a refresh, closing the tab)
+ * asks the browser to confirm first, so work isn't thrown away by accident.
+ */
+function useLeaveWarning(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [active]);
 }
 
 /** Store notifications → toasts. Errors stay until dismissed. */

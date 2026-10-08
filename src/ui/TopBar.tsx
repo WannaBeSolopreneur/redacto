@@ -16,7 +16,9 @@ export function TopBar({ onOpenSettings }: { onOpenSettings: () => void }) {
     <header className="shrink-0 bg-card">
       <AccentBar />
       <div className="flex h-14 items-center justify-between gap-3 border-b px-4">
-        <Logo />
+        <a href={import.meta.env.BASE_URL} aria-label="Redacto home" className="rounded-sm hover:opacity-80">
+          <Logo />
+        </a>
         <div className="flex items-center gap-2">
           {count > 0 && <ClearWorkspace count={count} />}
           <PrivacyBadge />
