@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Check, ClipboardPaste, Lock, Sparkles, Upload, WandSparkles } from 'lucide-react';
+import { Check, ClipboardPaste, Upload, WandSparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -51,187 +51,157 @@ export function Chip({ type, children, className }: { type: string; children: Re
   );
 }
 
-const EXAMPLES: Array<[string, string, string]> = [
-  ['PERSON', 'Maria Gonzalez', '[PERSON_1]'],
-  ['EMAIL', 'maria@example.org', '[EMAIL_1]'],
-  ['PHONE', '(217) 555-0198', '[PHONE_1]'],
-  ['ID_NUMBER', 'MRN 00483921', '[ID_NUMBER_1]'],
+const HOW = [
+  { title: 'Pick a model', body: 'Larger models find more. Smaller ones are faster.' },
+  { title: 'Download it once', body: 'It is saved in this browser. After that it loads from your device, even offline.' },
+  { title: 'Add your documents', body: 'They are read in this tab. Nothing is uploaded.' },
 ];
 
-const TRUST = [
-  { Icon: Lock, title: 'Stays on your device', body: 'Everything runs in this tab. Nothing is sent to a server.' },
-  { Icon: Sparkles, title: 'AI and rules together', body: 'A local PII model for names and context, checksummed patterns for cards, IBANs and SSNs.' },
-  { Icon: WandSparkles, title: 'You stay in control', body: 'Review every finding, keep what you need, and export a clean copy with no hidden text or metadata.' },
-];
-
-function StepHeading({ id, n, done, children }: { id: string; n: number; done: boolean; children: React.ReactNode }) {
-  return (
-    <h2 id={id} className="flex items-center gap-3 text-base font-semibold">
-      <span className={cn('grid size-7 place-items-center font-mono text-sm', done ? 'bg-teal text-white' : 'bg-primary text-primary-foreground')}>
-        {done ? <Check className="size-4" /> : n}
-      </span>
-      {children}
-    </h2>
-  );
-}
-
-/** Step 1: choose a model and activate it. Nothing downloads or loads before the click. */
-function ModelStep() {
+/**
+ * First run: set up the model before any document is accepted. Explains why a download is needed, then lets
+ * people pick and activate one. Nothing downloads or loads before the click.
+ */
+function ModelSetup({ onDone }: { onDone: () => void }) {
   const settings = useSlice(store, (s) => s.settings);
   const model = useSlice(store, (s) => s.model);
   const { stored, refresh } = useStoredModels();
   const elapsed = useElapsed(model.status === 'loading' ? model.startedAt : null);
-  const [changing, setChanging] = useState(false);
   const selected = getModel(settings.model);
-  const ready = settings.useML && model.status === 'ready';
+  const tier = selected.name.split(' · ')[0];
 
-  if (!settings.useML) {
-    return (
-      <section aria-labelledby="step-model" className="border bg-card p-5 shadow-sm">
-        <StepHeading id="step-model" n={1} done>AI model off: patterns only</StepHeading>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Emails, phone numbers, IDs, cards and addresses are still found. Names need the AI model.{' '}
-          <Button variant="link" size="sm" className="h-auto p-0" onClick={activateModel}>Turn the AI model on</Button>
-        </p>
-      </section>
-    );
-  }
-  if (ready && !changing) {
-    const active = getModel(model.activeId ?? settings.model);
-    return (
-      <section aria-labelledby="step-model" className="border bg-card p-5 shadow-sm">
-        <StepHeading id="step-model" n={1} done>{active.name} is active</StepHeading>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Running on this device{model.info ? ` · ${model.info.threads} CPU thread${model.info.threads > 1 ? 's' : ''}` : ''}.{' '}
-          <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setChanging(true)}>Change model</Button>
-        </p>
-        {model.notice && <p className="mt-2 rounded-md bg-amber-50 p-2 text-xs text-amber-900">{model.notice}</p>}
-      </section>
-    );
-  }
   return (
-    <section aria-labelledby="step-model" className="flex flex-col gap-3 border bg-card p-5 shadow-sm">
-      <StepHeading id="step-model" n={1} done={false}>Choose your AI model</StepHeading>
-      <p className="text-sm text-muted-foreground">It finds names and other context, and runs entirely in this tab. Nothing downloads until you activate it.</p>
-      <ModelPicker stored={stored} refresh={refresh} />
-      {model.status === 'loading' ? (
-        <div className="flex flex-col gap-2 text-sm">
-          <span className="flex items-center gap-2">
-            <Spinner className="text-primary" />
-            {model.fromDevice
-              ? `Loading ${selected.name} from this device… ${elapsed}s`
-              : model.progress > 0 && model.progress < 100 ? `Downloading ${selected.name}… ${Math.round(model.progress)}%` : `Preparing ${selected.name}… ${elapsed}s`}
-          </span>
-          {!model.fromDevice && model.progress > 0 && (
-            <div className="h-1 w-full overflow-hidden bg-muted"><div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round(model.progress)}%` }} /></div>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-14">
+      <header className="flex flex-col gap-3">
+        <p className="text-[11px] font-semibold tracking-widest text-primary uppercase">Before you add a document</p>
+        <h1 className="text-3xl leading-[1.08] font-semibold tracking-[-0.03em] text-balance sm:text-4xl">
+          First, get the AI model onto this device.
+        </h1>
+        <p className="text-base leading-relaxed text-secondary-foreground">
+          Redacto finds names, addresses and other personal details with a small AI model. The model runs inside this
+          browser tab, not on a server, which is why your documents never leave your device. So it has to be on your
+          device before you add one.
+        </p>
+      </header>
+
+      <ol className="grid gap-px border bg-border sm:grid-cols-3">
+        {HOW.map((step, i) => (
+          <li key={step.title} className="flex gap-3 bg-card p-4 sm:flex-col sm:gap-2">
+            <span className="grid size-6 shrink-0 place-items-center bg-primary font-mono text-xs text-primary-foreground">{i + 1}</span>
+            <span className="flex flex-col gap-0.5">
+              <strong className="text-sm font-semibold">{step.title}</strong>
+              <span className="text-sm text-muted-foreground">{step.body}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <section aria-labelledby="choose-model" className="flex flex-col gap-3">
+        <h2 id="choose-model" className="text-base font-semibold">Choose a model</h2>
+        <ModelPicker stored={stored} refresh={refresh} />
+        {model.status === 'loading' ? (
+          <div className="flex flex-col gap-2 border bg-card p-4 text-sm" role="status">
+            <span className="flex items-center gap-2">
+              <Spinner className="text-primary" />
+              {model.fromDevice
+                ? `Loading ${tier} from this device… ${elapsed}s`
+                : model.progress > 0 && model.progress < 100 ? `Downloading ${tier}… ${Math.round(model.progress)}%` : `Preparing ${tier}… ${elapsed}s`}
+            </span>
+            {!model.fromDevice && model.progress > 0 && (
+              <div className="h-1 w-full overflow-hidden bg-muted"><div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round(model.progress)}%` }} /></div>
+            )}
+            <span className="text-xs text-muted-foreground">You can add documents as soon as it's ready.</span>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <Button size="lg" className="w-full sm:w-auto" onClick={() => { onDone(); activateModel(); }}>
+              {stored.has(selected.id) ? `Activate ${tier}` : `Download & activate ${tier} (${selected.sizeMB} MB)`}
+            </Button>
+            <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={() => { onDone(); continueWithoutAI(); }}>
+              Continue without AI (patterns only)
+            </Button>
+          </div>
+        )}
+        {model.status === 'error' && <p className="bg-red-50 p-2 text-xs text-destructive">{model.error}</p>}
+      </section>
+    </div>
+  );
+}
+
+/** Once a model is active (or AI is off): add documents. */
+function AddDocuments({ onChangeModel }: { onChangeModel: () => void }) {
+  const [pasting, setPasting] = useState(false);
+  const [text, setText] = useState('');
+  const settings = useSlice(store, (s) => s.settings);
+  const model = useSlice(store, (s) => s.model);
+  const active = getModel(model.activeId ?? settings.model);
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-14">
+      <header className="flex flex-col gap-3">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          <span className="grid size-5 place-items-center bg-teal text-white"><Check className="size-3.5" /></span>
+          {settings.useML ? (
+            <>
+              <span><strong className="font-semibold text-foreground">{active.name.split(' · ')[0]}</strong> model is ready on this device.</span>
+              <Button variant="link" size="sm" className="h-auto p-0" onClick={onChangeModel}>Change</Button>
+            </>
+          ) : (
+            <>
+              <span>AI model off: emails, phones, IDs and cards are still found, names are not.</span>
+              <Button variant="link" size="sm" className="h-auto p-0" onClick={onChangeModel}>Set up the AI model</Button>
+            </>
           )}
-        </div>
+        </p>
+        <h1 className="text-3xl leading-[1.08] font-semibold tracking-[-0.03em] sm:text-4xl">Add your documents.</h1>
+        {model.notice && <p className="bg-amber-50 p-2 text-xs text-amber-900">{model.notice}</p>}
+      </header>
+
+      {!pasting ? (
+        <section aria-label="Add files" className="flex flex-col items-center gap-3 border border-dashed border-input bg-card px-4 py-10 text-center sm:py-14">
+          <Upload className="size-6 text-primary" />
+          <strong className="text-base font-semibold">
+            <span className="hidden sm:inline">Drop files anywhere on this page</span>
+            <span className="sm:hidden">Choose files to redact</span>
+          </strong>
+          <span className="text-sm text-muted-foreground">{FORMATS_LABEL}</span>
+          <div className="mt-1 flex w-full flex-col justify-center gap-2 sm:w-auto sm:flex-row">
+            <FilePicker>Choose files</FilePicker>
+            <Button variant="outline" onClick={() => setPasting(true)}>
+              <ClipboardPaste /> Paste text
+            </Button>
+          </div>
+          <Button variant="link" size="sm" onClick={() => addText(SAMPLE, 'Sample record.txt')}>
+            <WandSparkles /> or try a sample record
+          </Button>
+        </section>
       ) : (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Button onClick={() => { setChanging(false); activateModel(); }}>
-            {stored.has(selected.id) ? `Activate ${selected.name.split(' · ')[0]}` : `Download & activate ${selected.name.split(' · ')[0]} (${selected.sizeMB} MB)`}
-          </Button>
-          <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={continueWithoutAI}>
-            Continue without AI (patterns only)
-          </Button>
-        </div>
+        <section aria-label="Paste text" className="flex flex-col gap-3">
+          <Textarea
+            autoFocus
+            rows={9}
+            placeholder="Paste text containing personal information…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && text.trim()) addText(text);
+            }}
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setPasting(false)}>Cancel</Button>
+            <Button disabled={!text.trim()} onClick={() => addText(text)}>Find personal data</Button>
+          </div>
+        </section>
       )}
-      {model.status === 'error' && (
-        <p className="rounded-md bg-red-50 p-2 text-xs text-destructive">{model.error}</p>
-      )}
-    </section>
+    </div>
   );
 }
 
 export function Welcome() {
-  const [pasting, setPasting] = useState(false);
-  const [text, setText] = useState('');
-  const filesReady = useSlice(store, (s) => !s.settings.useML || s.model.status === 'ready');
-
+  const ready = useSlice(store, (s) => !s.settings.useML || s.model.status === 'ready');
+  const [changing, setChanging] = useState(false);
   return (
     <main className="flex-1 overflow-y-auto">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-10 md:px-8 md:py-14 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <div className="flex flex-col gap-6">
-          <h1 className="text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
-            Remove personal details <span className="text-primary">before AI sees them.</span>
-          </h1>
-          <p className="max-w-[48ch] text-lg leading-snug text-secondary-foreground">
-            Names, addresses, phone numbers, IDs and 50+ other kinds of personal data are found by an AI model that runs in
-            this tab. No uploads. No account.
-          </p>
-
-          <ModelStep />
-
-          <section aria-labelledby="step-files" className={cn('border bg-card p-5 shadow-sm transition-opacity', !filesReady && 'opacity-60')}>
-            <StepHeading id="step-files" n={2} done={false}>Add your files</StepHeading>
-            {!filesReady ? (
-              <p className="mt-3 border border-dashed border-input bg-background px-4 py-8 text-center text-sm text-muted-foreground">
-                Activate a model above first, or continue without AI.
-              </p>
-            ) : !pasting ? (
-              <div className="mt-3 flex flex-col items-center gap-3 border border-dashed border-input bg-background px-4 py-10 text-center">
-                <Upload className="size-6 text-primary" />
-                <strong className="text-base font-semibold">Drop files anywhere on this page</strong>
-                <span className="text-sm text-muted-foreground">{FORMATS_LABEL}</span>
-                <div className="mt-1 flex flex-wrap justify-center gap-2">
-                  <FilePicker>Choose files</FilePicker>
-                  <Button variant="outline" onClick={() => setPasting(true)}>
-                    <ClipboardPaste /> Paste text
-                  </Button>
-                </div>
-                <Button variant="link" size="sm" onClick={() => addText(SAMPLE, 'Sample record.txt')}>
-                  <WandSparkles /> or try a sample record
-                </Button>
-              </div>
-            ) : (
-              <div className="mt-3 flex flex-col gap-3">
-                <Textarea
-                  autoFocus
-                  rows={9}
-                  placeholder="Paste text containing personal information…"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && text.trim()) addText(text);
-                  }}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setPasting(false)}>Cancel</Button>
-                  <Button disabled={!text.trim()} onClick={() => addText(text)}>Find personal data</Button>
-                </div>
-              </div>
-            )}
-          </section>
-        </div>
-
-        <aside className="flex flex-col gap-6 lg:pt-3">
-          <div className="border bg-card p-5">
-            <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-              <Sparkles className="size-3.5 text-gold" /> Same value, same label
-            </p>
-            <ul className="flex flex-col divide-y border-t text-sm">
-              {EXAMPLES.map(([type, from, to]) => (
-                <li key={type} className="flex items-center justify-between gap-3 py-2.5">
-                  <span className="truncate text-secondary-foreground">{from}</span>
-                  <Chip type={type}>{to}</Chip>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 text-xs text-muted-foreground">The AI you share with can still follow who is who.</p>
-          </div>
-          <ul className="flex flex-col gap-4 text-sm">
-            {TRUST.map(({ Icon, title, body }) => (
-              <li key={title} className="flex gap-3 border-t pt-4">
-                <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-                <div>
-                  <strong className="block font-semibold">{title}</strong>
-                  <span className="text-muted-foreground">{body}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </aside>
-      </div>
+      {ready && !changing ? <AddDocuments onChangeModel={() => setChanging(true)} /> : <ModelSetup onDone={() => setChanging(false)} />}
     </main>
   );
 }

@@ -76,13 +76,14 @@ const OPENMED_LABELS: Record<string, EntityType> = {
 /**
  * OpenMed models are built locally by scripts/convert_models.py: graph fused
  * offline + int8 quantized (embeddings included), verified against fp32 on
- * Nemotron-PII. Accuracy below is from that check (400 held-out docs, exact span).
+ * Nemotron-PII (400 held-out docs, exact span): 355M F1 0.950 / recall 0.95, 125M F1 0.934 / recall 0.94,
+ * 66M F1 0.939 / recall 0.92. Descriptions are shown to people, so they stay in plain words.
  */
 export const MODELS: NerModel[] = [
   {
     id: 'OpenMed/OpenMed-PII-SuperMedical-Large-355M-v1',
     name: 'Best · OpenMed 355M',
-    description: '54 PII/PHI types. F1 0.950, misses the least (recall 0.95). Larger download and ~2-3x slower.',
+    description: 'Catches the most. The largest download and the slowest.',
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 357,
@@ -91,7 +92,7 @@ export const MODELS: NerModel[] = [
   {
     id: 'OpenMed/OpenMed-PII-SuperMedical-Base-125M-v1',
     name: 'Accurate · OpenMed 125M',
-    description: '54 PII/PHI types. F1 0.934, misses the least PII (recall 0.94).',
+    description: 'Nearly as thorough at a third of the size. A good default.',
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 125,
@@ -100,7 +101,7 @@ export const MODELS: NerModel[] = [
   {
     id: 'OpenMed/OpenMed-PII-LiteClinical-Small-66M-v1',
     name: 'Fast · OpenMed 66M',
-    description: '54 PII/PHI types. F1 0.939, about 2x faster, slightly lower recall (0.92).',
+    description: 'Quick and light. The best choice on phones.',
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 67,
@@ -109,7 +110,7 @@ export const MODELS: NerModel[] = [
   {
     id: 'Xenova/bert-base-NER',
     name: 'Basic · BERT NER',
-    description: 'Names, places and organisations only. Trained on news text.',
+    description: 'Names, places and organisations only.',
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 104,
@@ -136,4 +137,6 @@ export const IS_PHONE =
 export const DEFAULT_MODEL = SLOW_WASM || IS_PHONE ? MODELS[2].id : MODELS[1].id;
 /** Used automatically if the selected model fails to load. */
 export const FALLBACK_MODEL = MODELS[2].id;
+/** The model's page on Hugging Face (what it was trained on, how it was measured, its licence). */
+export const modelCard = (m: NerModel) => `https://huggingface.co/${m.id}`;
 export const getModel = (id: string) => MODELS.find((m) => m.id === id) ?? MODELS[1];

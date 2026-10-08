@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { downloadedModels, removeModel } from '../ml/cache';
-import { IS_PHONE, MODELS } from '../ml/models';
+import { IS_PHONE, MODELS, modelCard } from '../ml/models';
 import { store, updateSettings } from '../state/app';
 import { useSlice } from '../state/store';
 
@@ -42,12 +43,23 @@ export function ModelPicker({ stored, refresh, disabled }: { stored: Map<string,
           )}
         >
           <RadioGroupItem id={m.id} value={m.id} className="mt-0.5" />
-          <span className="flex flex-1 flex-col gap-0.5">
-            <span className="flex items-center gap-2 text-sm font-medium">
-              {m.name}
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="text-sm font-semibold">{m.name.split(' · ')[0]}</span>
+              <span className="text-xs text-muted-foreground">{m.name.split(' · ')[1]}</span>
               {IS_PHONE && m.sizeMB > 150 && (
                 <span className="border border-amber-300 bg-amber-50 px-1.5 text-[10px] font-semibold tracking-wide text-amber-800 uppercase">Heavy for phones</span>
               )}
+              <a
+                href={modelCard(m)}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-auto inline-flex items-center gap-0.5 text-xs text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+                aria-label={`${m.name} model card on Hugging Face`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                Model card <ArrowUpRight className="size-3" />
+              </a>
             </span>
             <span className="text-xs text-muted-foreground">{m.description}</span>
             {stored.has(m.id) ? (
@@ -67,7 +79,7 @@ export function ModelPicker({ stored, refresh, disabled }: { stored: Map<string,
                 </button>
               </span>
             ) : (
-              <span className="mt-1 text-xs text-muted-foreground">Downloads {m.sizeMB} MB the first time it's used</span>
+              <span className="mt-1 text-xs text-muted-foreground">{m.sizeMB} MB download, once</span>
             )}
           </span>
         </Label>
