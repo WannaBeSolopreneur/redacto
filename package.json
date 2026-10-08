@@ -14,7 +14,9 @@
     "postinstall": "node scripts/setup-assets.mjs",
     "test": "vitest run",
     "models": "bash scripts/build-models.sh",
-    "bench": "node scripts/browser-bench.mjs"
+    "bench": "node scripts/browser-bench.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:models": "sh scripts/upload-models-r2.sh"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.1",
@@ -48,6 +50,7 @@
     "playwright": "^1.49.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "wrangler": "^4.149.0"
   }
 }

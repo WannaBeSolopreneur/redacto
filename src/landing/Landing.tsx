@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, ArrowUp, Bot, Code, FilePen, FileText, FlaskConical, Landmark, Receipt, Users, Volume2, WifiOff, HardDrive, UserX } from 'lucide-react';
+import { ArrowRight, ArrowUp, Bot, FilePen, FileText, FlaskConical, Landmark, Receipt, Users, Volume2, WifiOff, HardDrive, UserX } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -47,6 +47,15 @@ function HeroVideo() {
         </Button>
       )}
     </figure>
+  );
+}
+
+/** GitHub's mark (lucide has no brand icons). Sized and coloured like the other icons. */
+function GitHubMark({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden className={cn('size-4', className)} {...props}>
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+    </svg>
   );
 }
 
@@ -100,7 +109,7 @@ export function Landing() {
           <div className="flex items-center gap-2">
             {REPO_URL && (
               <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-                <a href={REPO_URL}><Code /> Source</a>
+                <a href={REPO_URL}><GitHubMark /> GitHub</a>
               </Button>
             )}
             <Button asChild size="sm">
@@ -123,7 +132,9 @@ export function Landing() {
             <div className="flex flex-wrap gap-2">
               <TryButton />
               <Button asChild size="lg" variant="outline">
-                <a href="#how">How it works</a>
+                <a href={REPO_URL}>
+                  <GitHubMark /> 100% open source
+                </a>
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">PDF · Word · Excel · CSV · images · text. Free, no account.</p>
@@ -134,15 +145,22 @@ export function Landing() {
         {/* Trust strip: the reasons to believe the hero, before anything else. */}
         <section aria-label="Why you can trust Redacto" className="border-y bg-card">
           <ul className="mx-auto grid max-w-6xl gap-x-8 gap-y-6 px-5 py-7 sm:grid-cols-2 md:px-8 lg:grid-cols-4">
-            {TRUST.map(({ Icon, title, body }) => (
-              <li key={title} className="flex gap-3">
-                <Icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
-                <div>
-                  <b className="block font-semibold">{title}</b>
-                  <span className="text-sm text-muted-foreground">{body}</span>
-                </div>
-              </li>
-            ))}
+            {TRUST.map(({ Icon, title, body, href }) => {
+              const inner = (
+                <>
+                  <Icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+                  <div>
+                    <b className="block font-semibold">{title}{href && <span aria-hidden className="ml-1 text-primary">→</span>}</b>
+                    <span className="text-sm text-muted-foreground">{body}</span>
+                  </div>
+                </>
+              );
+              return (
+                <li key={title}>
+                  {href ? <a href={href} className="group flex gap-3 hover:[&_b]:text-primary">{inner}</a> : <div className="flex gap-3">{inner}</div>}
+                </li>
+              );
+            })}
           </ul>
         </section>
 
@@ -355,7 +373,7 @@ function ReportCard({ title, note, good, children: show }: { title: string; note
 }
 
 const TRUST = [
-  { Icon: Code, title: 'Open source', body: 'Every line of code that touches your file is public. Read it, or run it yourself.' },
+  { Icon: GitHubMark, title: '100% open source', body: 'Every line of code that touches your file is public on GitHub. Read it, or run it yourself.', href: REPO_URL },
   { Icon: WifiOff, title: 'Works with Wi-Fi off', body: 'Once it’s loaded, turn off your Wi-Fi. Redacto keeps working, because nothing needs the internet.' },
   { Icon: HardDrive, title: 'Nothing is uploaded', body: 'Your files are read and redacted on your device, and never sent anywhere.' },
   { Icon: UserX, title: 'No account, no tracking', body: 'No sign-up, no analytics, no cookies. Close the tab and your files are gone.' },

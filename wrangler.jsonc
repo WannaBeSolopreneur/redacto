@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "redacto",
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    // The production build. Models are excluded (public/.assetsignore) and served from R2 instead.
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "r2_buckets": [{ "binding": "MODELS", "bucket_name": "redacto-models" }],
+  "observability": { "enabled": true }
+}

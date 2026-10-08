@@ -9,6 +9,8 @@
 Remove names, addresses, account numbers and 50+ other kinds of personal data from PDFs, Word, Excel, images and text,
 entirely in your browser. Nothing is uploaded.
 
+**[Try it →](https://redacto.asad-moulvi01.workers.dev/app/)** · [Website](https://redacto.asad-moulvi01.workers.dev)
+
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-6a2fd8)](LICENSE)
 ![Runs in your browser](https://img.shields.io/badge/runs-100%25%20in%20your%20browser-19c3a5)
 ![Uploads](https://img.shields.io/badge/uploads-0-121118)
@@ -176,6 +178,24 @@ Any static host works. Whatever serves the app must follow three rules (vite dev
    format's code, the workers and pdf.js's files (`src/offline.ts`), and the browser must be allowed to keep them.
 
 Without rule 1 it still works on one thread (~3x slower), and the UI says so.
+
+### Cloudflare (how redacto.asad-moulvi01.workers.dev is hosted)
+
+The repo deploys as a Cloudflare Worker with static assets (`wrangler.jsonc`, `cloudflare/worker.ts`). Static files
+are capped at 25 MiB, so the models live in an R2 bucket and the Worker streams them at `/models/*` from the same
+origin, which keeps the Content-Security-Policy intact. The Worker runs first on every request to add the three
+rules above, 304s included. Everything fits the free plan.
+
+```bash
+npx wrangler login                              # once
+npx wrangler r2 bucket create redacto-models    # once
+npm run deploy:models                           # uploads public/models/ (files up to 315 MB)
+npm run deploy                                  # build + deploy
+APP_URL=https://<your-worker>/app/ node scripts/check-offline.mjs   # verify the live site
+```
+
+Model files over 315 MB (the 355M model) need an S3-compatible uploader such as `rclone` with an R2 API token;
+until it's uploaded, choosing that model falls back to the fast one automatically.
 
 ## Project tour
 

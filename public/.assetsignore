@@ -1,0 +1,5 @@
+# Not uploaded as Cloudflare static assets (25 MiB per-file limit):
+# models are served from R2 by cloudflare/worker.ts.
+models/
+# transformers.js's WebGPU (asyncify) runtime; the app runs on /vendor/ort's wasm build instead.
+assets/ort-wasm-simd-threaded.asyncify-*.wasm
