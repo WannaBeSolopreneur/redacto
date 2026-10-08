@@ -8,7 +8,17 @@ import json, pathlib, re, wave
 import numpy as np
 
 HERE = pathlib.Path(__file__).parent
-T = json.loads(re.search(r"window\.TIMING = (\{.*\});", (HERE / "timing.js").read_text(), re.S).group(1))
+RAW = json.loads(re.search(r"window\.TIMING = (\{.*?\n\});", (HERE / "timing.js").read_text(), re.S).group(1))
+
+
+def _scale(v, k):
+    if isinstance(v, (int, float)) and not isinstance(v, bool): return v / k
+    if isinstance(v, list): return [_scale(x, k) for x in v]
+    if isinstance(v, dict): return {n: (x if n in ("SPEED", "TAKE") else _scale(x, k)) for n, x in v.items()}
+    return v
+
+
+T = _scale(RAW, RAW.get("SPEED", 1))    # same scaling as timing.js
 SR = 48000
 LENGTH = T["LENGTH"]
 rng = np.random.default_rng(7)

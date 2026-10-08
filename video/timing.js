@@ -1,5 +1,7 @@
 // Film beats in seconds, shared by film.html and sound.py. Timed to vo/take_8 (voice starts at VOICE_AT).
+// Times are in the take's own clock; SPEED plays everything faster (voice pitch kept), see timing helpers.
 window.TIMING = {
+  "SPEED": 1.15,
   "VOICE_AT": 0.3,
   "TAKE": "vo/take_8.mp3",
   "LENGTH": 42.5,
@@ -28,3 +30,11 @@ window.TIMING = {
     [31.95, 36.0, "Don’t trust us. <em>Trust the code.</em>"]
   ]
 };
+
+// Scale every time by 1/SPEED, so the film, the effects and the sped-up voice stay in sync.
+window.TIMING = (function scale(v, k) {
+  if (typeof v === 'number') return v / k;
+  if (Array.isArray(v)) return v.map((x) => scale(x, k));
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([n, x]) => [n, n === 'SPEED' || n === 'TAKE' ? x : scale(x, k)]));
+  return v;
+})(window.TIMING, window.TIMING.SPEED);
