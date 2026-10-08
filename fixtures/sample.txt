@@ -1,0 +1,7 @@
+Patient: Maria Gonzalez   DOB: 04/12/1987   MRN: 00483921
+Address: 742 Evergreen Terrace, Springfield, IL 62704
+Phone: (217) 555-0198   Email: maria.gonzalez@example.org
+
+Maria was seen by Dr. James Whitfield at Springfield General Hospital on March 3, 2025.
+Her husband, Carlos Gonzalez, can be reached at +1 217 555 0142.
+Billing: card 4111 1111 1111 1111, SSN 123-45-6789.

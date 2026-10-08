@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Redacto · demo film</title>
+<style>
+@font-face { font-family: Inter; src: url(fonts/Inter.ttf); font-weight: 100 900; }
+:root {
+  --paper: #f6f6f4; --card: #fff; --ink: #121118; --ink-2: #3d3c47; --mute: #5f5e69; --line: #e3e3df; --muted: #f1f1ee;
+  --primary: #6a2fd8; --gold: #f5b301; --teal: #19c3a5; --magenta: #e0459f; --red: #d42a4c;
+  --mono: ui-monospace, Menlo, monospace;
+}
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+/* The site's colour pairs per kind of personal data. */
+[data-type=PERSON] { --ent: #a86f00; --ent-bg: #ffecb0; }
+[data-type=DATE] { --ent: #56607a; --ent-bg: #e3e7f0; }
+[data-type=ID_NUMBER] { --ent: #6a4fc9; --ent-bg: #e6defd; }
+[data-type=ADDRESS] { --ent: #2c62c9; --ent-bg: #d9e6fe; }
+.it { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; }
+#bar { position: absolute; left: 0; top: 0; width: 1920px; height: 6px; display: grid; grid-template-columns: 4fr 1fr 1fr 1fr; }
+#bar i:nth-child(1) { background: var(--primary); } #bar i:nth-child(2) { background: var(--magenta); }
+#bar i:nth-child(3) { background: var(--gold); } #bar i:nth-child(4) { background: var(--teal); }
+
+.caption { width: 700px; font: 600 62px/1.08 Inter; letter-spacing: -0.035em; }
+.caption em { font-style: normal; color: var(--primary); }
+#pill { display: flex; align-items: center; gap: 18px; padding: 16px 26px 16px 16px; background: var(--card); border: 1px solid var(--line);
+  box-shadow: 0 24px 50px -24px rgba(18,17,24,.25); white-space: nowrap; }
+#pill img { width: 64px; height: 64px; }
+#pill b { font: 700 38px Inter; letter-spacing: -0.02em; }
+#pill span { display: flex; align-items: center; gap: 10px; font: 500 24px Inter; color: var(--mute); }
+#pill span i { width: 10px; height: 10px; background: var(--teal); }
+
+/* Chat window */
+#chat { width: 820px; height: 560px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 40px 80px -40px rgba(18,17,24,.28); }
+#chat header { position: absolute; left: 0; right: 0; top: 0; height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 26px;
+  border-bottom: 1px solid var(--line); font: 500 21px Inter; color: var(--mute); }
+#chat header svg { width: 24px; height: 24px; }
+.file { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--muted); border: 1px solid var(--line); font: 500 21px Inter; white-space: nowrap; }
+.file svg { width: 22px; height: 22px; color: var(--primary); }
+.file.clean { border-color: color-mix(in srgb, var(--teal) 60%, #fff); background: color-mix(in srgb, var(--teal) 8%, #fff); }
+.file.clean svg { color: #0b8a73; }
+#compose { position: absolute; left: 26px; right: 26px; bottom: 26px; }
+#input { margin-top: 14px; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 22px;
+  border: 1px solid var(--input, #d4d4cf); font: 400 28px Inter; }
+#send { width: 48px; height: 48px; display: grid; place-items: center; background: var(--ink); color: #fff; }
+#send svg { width: 24px; height: 24px; }
+#caret { display: inline-block; width: 2px; height: 32px; background: var(--ink); vertical-align: -6px; margin-left: 2px; }
+#mine { position: absolute; right: 26px; top: 90px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+#mine p { margin: 0; padding: 14px 20px; background: var(--ink); color: #fff; font: 400 26px Inter; }
+#reply { position: absolute; left: 26px; right: 120px; top: 262px; display: flex; gap: 16px; font: 400 26px/1.45 Inter; color: var(--ink-2); }
+#reply .who { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--muted); }
+#reply .who svg { width: 22px; height: 22px; color: var(--mute); }
+
+/* Lab report */
+#report { width: 760px; height: 690px; padding: 44px 52px; box-sizing: border-box; background: var(--card); border: 1px solid var(--line);
+  box-shadow: 0 50px 100px -40px rgba(18,17,24,.3); }
+#report .kicker { font: 600 15px Inter; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+#report h3 { margin: 6px 0 0; font: 650 34px Inter; letter-spacing: -0.02em; }
+#report .rule { height: 1px; background: var(--line); margin: 26px 0 14px; }
+.row { position: relative; display: grid; grid-template-columns: 210px 1fr; align-items: center; height: 64px; font: 400 29px Inter; }
+.row > span:first-child { font-size: 22px; color: var(--mute); }
+.val { position: relative; display: inline-block; justify-self: start; white-space: nowrap; }
+.val .orig { position: relative; padding: 2px 4px; margin: 0 -4px; }
+.val.flag .orig { background: var(--ent-bg); box-shadow: inset 0 -3px 0 var(--ent); }
+.val .tag { position: absolute; left: calc(100% + 14px); top: 50%; padding: 3px 8px; border: 1.5px solid var(--ent); background: #fff; color: var(--ent);
+  font: 700 14px Inter; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; transform: translateY(-50%); }
+.val .chip { display: inline-block; padding: 4px 12px; background: var(--ent-bg); color: var(--ent); box-shadow: inset 0 0 0 2px var(--ent);
+  font: 700 26px var(--mono); transform-origin: 0 50%; }
+.res b { font-weight: 500; }
+.res .high { margin-left: 12px; font: 700 18px Inter; letter-spacing: .08em; color: var(--red); }
+.kept { position: absolute; right: -8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px; font: 600 19px Inter; color: #0b8a73; }
+.kept i { width: 12px; height: 12px; background: var(--teal); }
+.row.res { margin: 0 -22px; padding: 0 22px; border-left: 5px solid transparent; }
+
+/* End card */
+#end { width: 1920px; height: 1080px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#end img { width: 168px; height: 168px; }
+#end .word { margin-top: 18px; font: 750 64px Inter; letter-spacing: -0.03em; }
+#end h2 { margin: 34px 0 0; font: 650 76px/1.06 Inter; letter-spacing: -0.04em; max-width: 1300px; }
+#end h2 em { font-style: normal; color: var(--primary); }
+#end p { margin: 30px 0 0; display: flex; gap: 26px; font: 500 28px Inter; color: var(--mute); }
+#end p span { display: flex; align-items: center; gap: 12px; }
+#end p i { width: 10px; height: 10px; background: var(--teal); }
+#stars svg { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; }
+</style>
+</head>
+<body>
+<div id="bar"><i></i><i></i><i></i><i></i></div>
+
+<div id="caps"></div>
+<div id="pill" class="it"><img src="img/icon.png" alt=""><b>Redacto</b><span><i></i>on your device</span></div>
+
+<div id="chat" class="it">
+  <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 13v2M16 13v2"/></svg>ChatGPT · Claude · Grok</header>
+  <div id="mine"><span id="mineFile" class="file clean"></span><p>What should I be concerned about?</p></div>
+  <div id="reply"><span class="who"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 13v2M16 13v2"/></svg></span><span id="replyText"></span></div>
+  <div id="compose">
+    <span id="attach" class="file"></span>
+    <div id="input"><span><span id="typed"></span><span id="caret"></span></span><span id="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span></div>
+  </div>
+</div>
+
+<div id="report" class="it">
+  <div class="kicker">lab_results.pdf · fictional</div>
+  <h3>Northside Medical Lab</h3>
+  <div class="rule"></div>
+  <div class="row"><span>Patient</span><span class="val" data-k="0" data-type="PERSON"></span></div>
+  <div class="row"><span>Date of birth</span><span class="val" data-k="1" data-type="DATE"></span></div>
+  <div class="row"><span>Patient ID</span><span class="val" data-k="2" data-type="ID_NUMBER"></span></div>
+  <div class="row"><span>Address</span><span class="val" data-k="3" data-type="ADDRESS"></span></div>
+  <div class="row"><span>Ordered by</span><span class="val" data-k="4" data-type="PERSON"></span></div>
+  <div class="rule"></div>
+  <div class="row res"><span>HbA1c</span><span><b>6.8%</b><span class="high">HIGH</span></span><span class="kept"><i></i>kept</span></div>
+  <div class="row res"><span>LDL</span><span><b>168 mg/dL</b><span class="high">HIGH</span></span></div>
+</div>
+
+<div id="end" class="it">
+  <img src="img/icon.png" alt="">
+  <div class="word">Redacto</div>
+  <h2>Make private info <em>disappear</em><br>before AI sees it.</h2>
+  <p><span><i></i>Runs on your device</span><span><i></i>Free in your browser</span></p>
+</div>
+
+<div id="stars"></div>
+
+<script src="timing.js"></script>
+<script>
+'use strict';
+// A landscape film timed to the voice-over (timing.js). Every frame is computed from t alone, so any moment can be rendered in any order.
+const W = 1920, H = 1080, FPS = 30, LENGTH = TIMING.LENGTH;
+const el = (id) => document.getElementById(id);
+const lim = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
+const mix = (a, b, k) => a + (b - a) * k;
+const span = (t, a, b) => lim((t - a) / (b - a));
+const ease = (u) => u * u * (3 - 2 * u);
+const easeOut = (u) => 1 - Math.pow(1 - u, 3);
+const ramp = (a, b, t) => ease(span(t, a, b));
+/** Damped spring from 0 to 1, starting at `at`. */
+function spring(t, at, damping = 0.55, freq = 16) {
+  const s = t - at; if (s <= 0) return 0;
+  const wd = freq * Math.sqrt(1 - damping * damping);
+  return 1 - Math.exp(-damping * freq * s) * (Math.cos(wd * s) + (damping * freq / wd) * Math.sin(wd * s));
+}
+const ICON_FILE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+
+/* ---------------------------------------------------------------- timing */
+const AT = TIMING;
+const CAPTIONS = TIMING.captions;
+const DETAILS = [
+  ['Maria Delgado', '[PERSON_1]', 'Name'],
+  ['04/12/1987', '[DATE_1]', 'Birthday'],
+  ['MRN 00483921', '[ID_NUMBER_1]', 'Patient ID'],
+  ['1842 W Fulton St, Chicago', '[ADDRESS_1]', 'Address'],
+  ['Dr. James Whitfield', '[PERSON_2]', 'Doctor'],
+];
+const QUESTION = 'What should I be concerned about?';
+const REPLY = 'Your HbA1c of 6.8% is in the diabetes range, and your LDL of 168 mg/dL is high. Both are worth discussing with your doctor.';
+
+/* ---------------------------------------------------------------- layout (pure: positions at time t) */
+const CHAT_HOME = { x: 960, y: 290, w: 820 };
+const REPORT_HOME = { x: 990, y: 195, w: 760 };
+const CHIP_IN_CHAT = { x: CHAT_HOME.x + 26, y: CHAT_HOME.y + 560 - 26 - 72 - 14 - 46, w: 230 };   // where the attachment sits
+
+function layout(t) {
+  const L = {};
+  const inChat = spring(t, AT.chat, 0.7, 12);
+  const open = ramp(AT.expand[0], AT.expand[1], t), close = ramp(AT.collapse[0], AT.collapse[1], t);
+  const away = open * (1 - close);                         // 1 while the report is open
+  const endK = ramp(AT.end[0], AT.end[1], t), outK = ramp(AT.out[0], AT.out[1], t);   // the scene clears before the end card
+  // Chat window: rises in, steps back while the report is open, leaves for the end card.
+  L.chat = {
+    x: CHAT_HOME.x - 60 * away, y: CHAT_HOME.y + (1 - inChat) * 80 + 40 * away - 60 * endK,
+    s: 0.94 + 0.06 * inChat - 0.08 * away, o: lim(inChat * 1.4) * (1 - away) * (1 - outK),
+  };
+  // Report grows out of the attachment chip and shrinks back into it.
+  const g = easeOut(away);
+  L.report = {
+    x: mix(CHIP_IN_CHAT.x, REPORT_HOME.x, g), y: mix(CHIP_IN_CHAT.y, REPORT_HOME.y, g),
+    s: mix(CHIP_IN_CHAT.w / REPORT_HOME.w, 1, g), o: lim(away * 3), content: lim((away - 0.2) * 2.5),
+  };
+  // Badge drops in under the caption and stays until the end card.
+  const p = spring(t, AT.pill, 0.5, 14);
+  L.pill = { x: 120, y: mix(-120, 660, p), o: lim((t - AT.pill) * 6) * (1 - outK) };
+  L.end = { o: endK, y: (1 - endK) * 40 };
+  return L;
+}
+
+/* ---------------------------------------------------------------- drawing */
+const caps = CAPTIONS.map(([, , html]) => {
+  const d = document.createElement('div'); d.className = 'it caption'; d.innerHTML = html; el('caps').appendChild(d); return d;
+});
+const vals = [...document.querySelectorAll('.val')];
+vals.forEach((v, i) => { v.innerHTML = `<span class="orig">${DETAILS[i][0]}</span><span class="tag">${DETAILS[i][2]}</span>`; });
+el('attach').innerHTML = ICON_FILE + 'lab_results.pdf';
+el('mineFile').innerHTML = ICON_FILE + 'lab_results.pdf';
+const STARS_PER = 9, COLORS = ['#f5b301', '#e0459f', '#19c3a5', '#6a2fd8'];
+const STAR = 'M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6z';
+const stars = [];
+for (let i = 0; i < DETAILS.length * STARS_PER; i++) {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.innerHTML = `<path d="${STAR}" fill="${COLORS[i % 4]}" transform="translate(-12 -12)"/>`;
+  el('stars').appendChild(s); stars.push(s);
+}
+// Deterministic "random" numbers, so every render of a frame is identical.
+const rnd = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
+const place = (node, x, y, s = 1, o = 1) => { node.style.transform = `translate(${x}px,${y}px) scale(${s})`; node.style.opacity = o; };
+
+function draw(t) {
+  const L = layout(t);
+
+  // Captions: each slides up into place and fades out before the next.
+  CAPTIONS.forEach(([a, b], i) => {
+    const k = ramp(a, a + 0.35, t) * (1 - ramp(b - 0.25, b, t));
+    place(caps[i], 120, 300 + (1 - ramp(a, a + 0.35, t)) * 30 - ramp(b - 0.25, b, t) * 20, 1, k);
+  });
+
+  place(el('chat'), L.chat.x, L.chat.y, L.chat.s, L.chat.o);
+  place(el('report'), L.report.x, L.report.y, L.report.s, L.report.o);
+  el('report').querySelectorAll(':scope > *').forEach((c) => { c.style.opacity = L.report.content; });
+  place(el('pill'), L.pill.x, L.pill.y, 1, L.pill.o);
+  place(el('end'), 0, L.end.y, 1, L.end.o);
+  const endParts = el('end').children;   // logo, wordmark, headline, subline
+  [AT.end[0], AT.end[0], AT.headline, AT.sub].forEach((at, i) => {
+    const k = ramp(at, at + 0.45, t);
+    endParts[i].style.opacity = k; endParts[i].style.transform = `translateY(${(1 - k) * 18}px)`;
+  });
+
+  // Chat: attachment, typing, sending, reply.
+  const sent = t >= AT.send, clean = t >= AT.collapse[1] - 0.15;
+  const a = spring(t, AT.attach, 0.5, 18);
+  el('attach').style.transform = `scale(${0.6 + 0.4 * a})`; el('attach').style.transformOrigin = '0 50%';
+  el('attach').style.opacity = sent ? 0 : lim((t - AT.attach) * 8);
+  el('attach').className = clean ? 'file clean' : 'file';
+  el('attach').innerHTML = ICON_FILE + (clean ? 'lab_results · redacted.pdf' : 'lab_results.pdf');
+  el('mineFile').innerHTML = ICON_FILE + 'lab_results · redacted.pdf';
+  const n = Math.round(span(t, AT.type[0], AT.type[1]) * QUESTION.length);
+  el('typed').textContent = sent ? '' : QUESTION.slice(0, n);
+  el('caret').style.opacity = !sent && Math.floor(t * 2.2) % 2 === 0 ? 1 : 0;
+  const m = spring(t, AT.send, 0.6, 15);
+  el('mine').style.opacity = sent ? 1 : 0; el('mine').style.transform = `translateY(${(1 - m) * 40}px)`;
+  const words = REPLY.split(' '), shown = Math.round(span(t, AT.reply[0], AT.reply[1]) * words.length);
+  el('reply').style.opacity = t >= AT.reply[0] - 0.2 ? lim((t - AT.reply[0] + 0.2) * 5) : 0;
+  el('replyText').textContent = words.slice(0, Math.max(0, shown)).join(' ');
+
+  // Report: flag each detail, then swap it for its label with a sparkle.
+  vals.forEach((v, i) => {
+    const flagged = t >= AT.flags[i], swapped = t >= AT.swaps[i];
+    const [, label] = DETAILS[i];
+    if (swapped) {
+      if (v.dataset.state !== 'swap') { v.innerHTML = `<span class="chip">${label}</span>`; v.dataset.state = 'swap'; }
+      v.firstChild.style.transform = `scale(${0.82 + 0.18 * spring(t, AT.swaps[i], 0.45, 20)})`;
+      v.classList.remove('flag');
+    } else {
+      if (v.dataset.state === 'swap') { v.innerHTML = `<span class="orig">${DETAILS[i][0]}</span><span class="tag">${DETAILS[i][2]}</span>`; }
+      v.dataset.state = flagged ? 'flag' : 'plain';
+      v.classList.toggle('flag', flagged);
+      const tag = v.querySelector('.tag'), k = spring(t, AT.flags[i], 0.55, 20);
+      tag.style.opacity = flagged ? lim((t - AT.flags[i]) * 10) : 0;
+      tag.style.transform = `translate(${(1 - k) * -10}px,-50%)`;
+    }
+  });
+  // The results stay: tint them teal once every detail has been replaced.
+  const kk = ramp(AT.kept, AT.kept + 0.3, t);
+  document.querySelector('.kept').style.opacity = kk;
+  document.querySelectorAll('.row.res').forEach((r) => {
+    r.style.background = `rgba(25,195,165,${0.08 * kk})`;
+    r.style.borderLeftColor = `rgba(25,195,165,${kk})`;
+  });
+
+  // Sparkles around each new label.
+  vals.forEach((v, i) => {
+    const s = t - AT.swaps[i], live = s > 0 && s < 0.9 && L.report.o > 0.5;
+    const box = live ? v.getBoundingClientRect() : null;
+    for (let j = 0; j < STARS_PER; j++) {
+      const star = stars[i * STARS_PER + j];
+      if (!live) { star.style.opacity = 0; continue; }
+      const ang = (j / STARS_PER) * Math.PI * 2 + rnd(i, j) * 0.8, dist = 40 + rnd(i, j + 9) * 50;
+      const u = easeOut(lim(s / (0.6 + rnd(i, j + 3) * 0.3)));
+      const cx = box.left + box.width * (0.2 + 0.6 * rnd(i, j + 5)), cy = box.top + box.height / 2;
+      const size = (14 + rnd(i, j + 7) * 16) * (0.3 + 0.7 * Math.sin(Math.PI * Math.min(1, u * 1.1)));
+      star.style.transform = `translate(${cx + Math.cos(ang) * dist * u}px,${cy + Math.sin(ang) * dist * u}px) rotate(${u * 120}deg) scale(${size / 24})`;
+      star.style.opacity = lim(Math.sin(Math.PI * u) * 1.6);
+    }
+  });
+}
+
+/** Rough on-screen travel in px between two times, so the renderer knows how much motion blur a frame needs. */
+function travel(t0, t1) {
+  const A = layout(t0), B = layout(t1);
+  const d = (p, q) => Math.hypot(q.x - p.x, q.y - p.y) + Math.abs(q.s - p.s) * 800;
+  return Math.max(d(A.chat, B.chat), d(A.report, B.report), Math.abs(B.pill.y - A.pill.y), Math.abs(B.end.y - A.end.y));
+}
+
+window.film = {
+  length: LENGTH, fps: FPS, width: W, height: H,
+  cuts: [...AT.swaps, AT.send, AT.collapse[1] - 0.15],     // hard changes: never blur across these
+  ready: document.fonts.ready.then(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {})))).then(() => draw(0)),
+  seek: (t) => draw(t),
+  travel,
+};
+const qs = new URLSearchParams(location.search);
+if (qs.has('t')) film.ready.then(() => draw(parseFloat(qs.get('t'))));
+if (qs.has('play')) film.ready.then(() => { const t0 = performance.now(); (function go() { draw(((performance.now() - t0) / 1000) % LENGTH); requestAnimationFrame(go); })(); });
+</script>
+</body>
+</html>

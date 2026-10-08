@@ -1,0 +1,149 @@
+{
+  "_comment": "Hard name cases for comparing models (scripts/eval-names.mjs). Synthetic, modelled on real-world failures: all-caps statement headers, payment memos, lowercase notes, non-English names, initials. 'names' must be fully covered; 'clean' lines contain no person names.",
+  "cases": [
+    {
+      "text": "JPMorgan Chase Bank, N.A.\nP O Box 182051\nColumbus, OH 43218 - 2051\n00427719 DRE 104 338 51902 NNNNNNNNNNN 1 000000000 04 0000\nMARIA ELENA GONZALEZ\n742 EVERGREEN TER\nSPRINGFIELD IL 62704",
+      "names": [
+        "MARIA ELENA GONZALEZ"
+      ]
+    },
+    {
+      "text": "Statement Period: January 08, 2026 through February 05, 2026\nPRIYA RAMAN\n18 BIRCHWOOD LN\nANN ARBOR MI 48104",
+      "names": [
+        "PRIYA RAMAN"
+      ]
+    },
+    {
+      "text": "BANK OF AMERICA, N.A.\nJOHN Q PUBLIC\n1600 PENNSYLVANIA AVE NW\nWASHINGTON DC 20500",
+      "names": [
+        "JOHN Q PUBLIC"
+      ]
+    },
+    {
+      "text": "01/20 Zelle Payment To Omar Siddiqui (Roommate Rent) 41190563388 -350.00 2,904.12",
+      "names": [
+        "Omar Siddiqui"
+      ]
+    },
+    {
+      "text": "01/26 Zelle Payment From Kenji Watanabe 41207718452 15.00 734.90",
+      "names": [
+        "Kenji Watanabe"
+      ]
+    },
+    {
+      "text": "02/02 Venmo *Daniela Ruiz Visa Direct CA Card 4021 -42.00",
+      "names": [
+        "Daniela Ruiz"
+      ]
+    },
+    {
+      "text": "01/20 Zelle Payment To Bilal Khan (Jordan Friends) 41190563388 -350.00",
+      "names": [
+        "Bilal Khan",
+        "Jordan"
+      ]
+    },
+    {
+      "text": "pt is maria gonzalez, seen by dr james whitfield. husband carlos called back.",
+      "names": [
+        "maria gonzalez",
+        "james whitfield",
+        "carlos"
+      ]
+    },
+    {
+      "text": "lives w/ daughter priya raman on 18 birchwood ln in ann arbor. son tomas visits weekly.",
+      "names": [
+        "priya raman",
+        "tomas"
+      ]
+    },
+    {
+      "text": "PATIENT: MARIA GONZALEZ. ATTENDING: JAMES WHITFIELD. EMERGENCY CONTACT: CARLOS GONZALEZ.",
+      "names": [
+        "MARIA GONZALEZ",
+        "JAMES WHITFIELD",
+        "CARLOS GONZALEZ"
+      ]
+    },
+    {
+      "text": "Attendees: Nguyễn Văn An, Siobhán O'Brien, Zhang Wei, Oluwaseun Adeyemi, Jürgen Müller.",
+      "names": [
+        "Nguyễn Văn An",
+        "Siobhán O'Brien",
+        "Zhang Wei",
+        "Oluwaseun Adeyemi",
+        "Jürgen Müller"
+      ]
+    },
+    {
+      "text": "Signed by J. Smith and A.B. Okafor. cc: M. Rossi",
+      "names": [
+        "J. Smith",
+        "A.B. Okafor",
+        "M. Rossi"
+      ]
+    },
+    {
+      "text": "Thanks,\nDaniel\n\nDaniel Kowalczyk | Senior Engineer | Northwind Traders",
+      "names": [
+        "Daniel",
+        "Daniel Kowalczyk"
+      ]
+    },
+    {
+      "text": "EMPLOYEE NAME: ROBERT T. NAKAMURA   EMPLOYEE ID: 004512   PAY DATE: 12/19/2025",
+      "names": [
+        "ROBERT T. NAKAMURA"
+      ]
+    },
+    {
+      "text": "Pay to the order of: Aisha Bello-Okonjo  Amount: $1,250.00",
+      "names": [
+        "Aisha Bello-Okonjo"
+      ]
+    },
+    {
+      "text": "Borrower: Wei-Ling Chen   Co-Borrower: Marcus Chen   Loan #: 7781-2234",
+      "names": [
+        "Wei-Ling Chen",
+        "Marcus Chen"
+      ]
+    },
+    {
+      "text": "Ask Kevin. Kevin said Ahmed and Li would review it with Fatima.",
+      "names": [
+        "Kevin",
+        "Ahmed",
+        "Li",
+        "Fatima"
+      ]
+    },
+    {
+      "text": "Name,Email\nJeff,jeff@x.com\nSarah Lee,s@x.com\nTom,tom@y.org",
+      "names": [
+        "Jeff",
+        "Sarah Lee",
+        "Tom"
+      ]
+    }
+  ],
+  "clean": [
+    "01/08 Point Bank At Trnsfer Web ID: 381204417 -184.20 2,851.03",
+    "01/15 Rocket Money Premium St-K7Q2M9X4R1B8 CCD ID: 4415023377 -6.40",
+    "Recurring Card Purchase 01/22 Apple.Com/Bill 866-712-7753 CA Card 4021 -2.99",
+    "Card Purchase 02/03 Amazon Mktpl*Q4Z81K Amzn.Com/Bill WA Card 4021 -96.34",
+    "CHECKING SUMMARY Chase College Checking Beginning Balance $3,118.40 Ending Balance $1,902.77",
+    "Northwind Health Payroll PPD ID: 5902218836 1,240.18",
+    "Payment To Chase Card Ending IN 3307 -1,312.55",
+    "Please review the attached invoice and let me know by Friday.",
+    "The meeting moved to the main conference room on the third floor.",
+    "CHECKING SUMMARY",
+    "TRANSACTION DETAIL",
+    "CUSTOMER SERVICE INFORMATION",
+    "RIVERTON UT 84065-3310",
+    "PAYMENT TO CHASE CARD ENDING IN 3307",
+    "DEPOSITS AND ADDITIONS 2,244.22"
+  ]
+}

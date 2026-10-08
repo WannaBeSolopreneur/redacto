@@ -1,0 +1,13 @@
+Redacto
+Copyright 2026 Redacto contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It bundles or downloads third-party components under their own licences, including:
+- OpenMed PII models (OpenMed): Apache-2.0
+- bert-base-NER ONNX export (Xenova / dslim): MIT
+- transformers.js (Hugging Face) and ONNX Runtime Web (Microsoft): Apache-2.0 / MIT
+- pdf.js (Mozilla): Apache-2.0; its standard fonts (Foxit, Liberation) and decoders carry their own licences in public/vendor/pdfjs
+- pdf-lib: MIT; tesseract.js and Tesseract OCR: Apache-2.0; English traineddata (tessdata): Apache-2.0
+- React, Radix UI, shadcn/ui, Tailwind CSS, lucide icons, fflate, PapaParse, @xmldom/xmldom, sonner, TanStack Virtual: MIT or ISC, as stated by each package
+- Inter typeface (video/fonts): SIL Open Font License 1.1

@@ -1,0 +1,94 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Design tokens only. Components are styled with Tailwind utilities; the brand lives here.
+ * Swiss editorial with a hint of magic: strict grid, sharp corners, neutral canvas, generous
+ * white space. Violet, magenta, gold and teal are accents only; the magic (a sparkle) shows up
+ * only at the moment a detail is replaced.
+ */
+:root {
+  color-scheme: light;
+  --radius: 0.25rem;
+
+  --background: #f6f6f4;
+  --foreground: #121118;
+  --card: #ffffff;
+  --card-foreground: #121118;
+  --popover: #ffffff;
+  --popover-foreground: #121118;
+  --primary: #6a2fd8;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f1ee;
+  --secondary-foreground: #3d3c47;
+  --muted: #f1f1ee;
+  --muted-foreground: #5f5e69;
+  --accent: #efedfb;
+  --accent-foreground: #3d3c47;
+  --destructive: #d42a4c;
+  --border: #e3e3df;
+  --input: #d4d4cf;
+  --ring: #6a2fd8;
+
+  /* Brand */
+  --night: #1a1238;
+  --night-2: #2b1660;
+  --gold: #f5b301;
+  --teal: #19c3a5;
+  --magenta: #e0459f;
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-gold: var(--gold);
+  --color-teal: var(--teal);
+  --color-magenta: var(--magenta);
+  /* Entity colour of the element (set by data-type below), for utilities like bg-ent-bg. */
+  --color-ent: var(--ent);
+  --color-ent-bg: var(--ent-bg);
+}
+
+/*
+ * One colour pair per kind of personal data, from the brand chips:
+ * names gold, emails teal, phones pink, numbers/accounts lavender.
+ * --ent is a strong tone for borders and text, --ent-bg a light fill.
+ */
+[data-type] { --ent: #6a2fd8; --ent-bg: #ede6fd; }
+[data-type="PERSON"] { --ent: #a86f00; --ent-bg: #ffecb0; }
+[data-type="EMAIL"], [data-type="URL"], [data-type="IP_ADDRESS"] { --ent: #0b8a73; --ent-bg: #c9f3ea; }
+[data-type="PHONE"] { --ent: #c8227a; --ent-bg: #ffd6ec; }
+[data-type="SSN"], [data-type="CREDIT_CARD"], [data-type="IBAN"], [data-type="ID_NUMBER"] { --ent: #6a4fc9; --ent-bg: #e6defd; }
+[data-type="ADDRESS"], [data-type="LOCATION"], [data-type="ZIP"] { --ent: #2c62c9; --ent-bg: #d9e6fe; }
+[data-type="ORG"] { --ent: #c25a14; --ent-bg: #ffe2cc; }
+[data-type="DATE"] { --ent: #56607a; --ent-bg: #e3e7f0; }
+[data-type="SENSITIVE"] { --ent: #c0263f; --ent-bg: #ffd9de; }
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground antialiased; }
+}
