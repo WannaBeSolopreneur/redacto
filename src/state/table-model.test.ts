@@ -6,8 +6,9 @@ const gate = vi.hoisted(() => ({ next: null as Promise<void> | null }));
 
 // Browser/ONNX inference is the slow boundary. Keep the scan planner, projection,
 // document state, review controls and export gating real.
+const loads = vi.hoisted(() => ({ count: 0 }));
 vi.mock('../ml/ner', () => ({
-  loadNer: async () => ({ loadMs: 1, threads: 1, isolated: false }),
+  loadNer: async () => { loads.count++; return { loadMs: 1, threads: 1, isolated: false }; },
   cancelNer: () => {}, onNerProgress: () => () => {},
   runNer: async (_model: string, text: string, _overrides: unknown, _current: unknown, options?: RunOptions) => {
     const wait = gate.next; gate.next = null;
@@ -23,7 +24,7 @@ vi.mock('../ml/ner', () => ({
   },
 }));
 
-import { addFiles, canExport, clearAll, docView, redoReview, setHeaderRow, store, undoReview, updateSettings } from './app';
+import { activateModel, addFiles, canExport, clearAll, docView, redoReview, setHeaderRow, store, undoReview, updateSettings } from './app';
 
 async function open(text: string) {
   addFiles([new File([text], 'people.csv')]);
@@ -32,8 +33,25 @@ async function open(text: string) {
 }
 const current = (id: string) => store.get().docs.find((d) => d.id === id)!;
 
+describe('model activation', () => {
+  it('loads nothing until the user activates the model; waiting documents are then scanned', async () => {
+    clearAll(); updateSettings({ useML: true, mode: 'label', denyList: [], allowList: [] });
+    loads.count = 0;
+    addFiles([new File(['Zyra Okafor'], 'notes.csv')]);
+    await vi.waitFor(() => expect(store.get().docs.at(-1)?.phase).toBe('ready'));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(loads.count).toBe(0);
+    expect(store.get().model.status).toBe('idle');
+    expect(store.get().docs.at(-1)?.mlState).toBe('waiting');
+    expect(canExport(store.get().docs.at(-1)!)).toBe(false);
+    activateModel();
+    await vi.waitFor(() => expect(store.get().docs.at(-1)?.mlState).toBe('done'));
+    expect(loads.count).toBe(1);
+  });
+});
+
 describe('spreadsheet model integration', () => {
-  beforeEach(() => { clearAll(); updateSettings({ useML: true, mode: 'label', denyList: [], allowList: [] }); });
+  beforeEach(() => { clearAll(); updateSettings({ useML: true, mode: 'label', denyList: [], allowList: [] }); activateModel(); });
 
   it('routes CSV inference through the distinct-value scan and exposes its progress', async () => {
     const d = await open(Array.from({ length: 500 }, () => 'Zyra Okafor').join('\n'));

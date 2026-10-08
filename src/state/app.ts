@@ -24,6 +24,8 @@ export interface ModelState {
   startedAt: number | null;
   /** The model being loaded is already stored on this device (no download). */
   fromDevice: boolean;
+  /** The user chose to turn the AI model on for this page. Nothing loads before that. */
+  activated: boolean;
   info: LoadInfo | null;
   lastRunMs: number | null;
   notice: string | null;
@@ -133,6 +135,7 @@ export const store = createStore<AppState>({
     progress: 0,
     startedAt: null,
     fromDevice: false,
+    activated: false,
     info: null,
     lastRunMs: null,
     notice: null,
@@ -411,6 +414,8 @@ function cancelRun(id: string) {
 async function runModel(id: string) {
   const d = getDoc(id);
   if (!d?.doc || d.mlState !== 'waiting') return;
+  // Documents added before the model is activated wait for it; nothing loads by itself.
+  if (!get().model.activated) return;
   cancelRun(id);
   const gen = modelGen;
   const request = new AbortController();
@@ -464,31 +469,55 @@ function restartModel() {
       d.phase === 'ready' ? { ...d, ml: [], mlProgress: null, mlError: null, mlState: initialMlState(d.doc!), exportAcknowledged: false } : d,
     ),
   }));
-  if (!useML) return;
+  if (!useML || !get().model.activated) return;
   void ensureModel().catch(() => {});
   for (const d of get().docs) void runModel(d.id);
 }
 
-export function retryModel() {
+/** Turn the AI model on: load the selected model, scan waiting documents, then prepare offline use. */
+export function activateModel() {
   modelBlocked = false;
-  restartModel();
+  setModel({ activated: true });
+  if (get().settings.useML) restartModel();
+  else updateSettings({ useML: true }); // restarts the model
+  void prepareOffline();
 }
 
-const initialMlState = (doc: LoadedDoc): MlState =>
-  get().settings.useML && /[\p{L}\p{N}]/u.test(doc.text) ? 'waiting' : 'off';
+export function retryModel() {
+  activateModel();
+}
 
-/** Warm the model up shortly after start so it's ready by the time a file is dropped. */
-export function init() {
-  setTimeout(async () => {
+/** Patterns only, no AI model. */
+export function continueWithoutAI() {
+  updateSettings({ useML: false });
+  void prepareOffline();
+}
+
+let preparing: Promise<void> | null = null;
+/** Fetch the rest of the app in the background so it keeps working if the network goes away. Runs once. */
+function prepareOffline() {
+  preparing ??= (async () => {
     if (get().settings.useML) await ensureModel().catch(() => {});
-    // Then the rest of the app, in the background, so it keeps working if the network goes away.
     try {
       await (await import('../offline')).warmForOffline();
       store.set((s) => ({ ...s, offlineReady: true }));
     } catch (e) {
       console.warn('Offline warm-up incomplete:', e);
     }
-  }, 300);
+  })();
+  return preparing;
+}
+
+const initialMlState = (doc: LoadedDoc): MlState =>
+  get().settings.useML && /[\p{L}\p{N}]/u.test(doc.text) ? 'waiting' : 'off';
+
+/** Warm the model up shortly after start so it's ready by the time a file is dropped. */
+/**
+ * Nothing heavy starts by itself: the user picks a model and activates it (or continues without AI).
+ * Someone who chose patterns only last time gets the offline warm-up straight away.
+ */
+export function init() {
+  if (!get().settings.useML) setTimeout(() => void prepareOffline(), 300);
 }
 
 /* ------------------------------------------------------------------ settings */

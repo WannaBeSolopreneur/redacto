@@ -2,17 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { ENTITY_LABELS, ENTITY_TYPES } from '../core/types';
-import { MODELS } from '../ml/models';
-import { downloadedModels, removeModel } from '../ml/cache';
-import { clearAll, ensureModel, resetSettings, retryModel, store, updateSettings } from '../state/app';
+import { ModelPicker, mb, useStoredModels } from './ModelPicker';
+import { activateModel, clearAll, resetSettings, retryModel, store, updateSettings } from '../state/app';
 import { useSlice } from '../state/store';
 import { Spinner } from './brand';
 import { useElapsed } from './TopBar';
@@ -36,14 +33,7 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
   // The slider moves freely; the (whole-document) re-filter runs once, on release.
   const [threshold, setThreshold] = useState(settings.minScore);
   useEffect(() => setThreshold(settings.minScore), [settings.minScore]);
-  // Which models are stored on this device, re-read when the drawer opens and when a load finishes.
-  const [stored, setStored] = useState<Map<string, number>>(new Map());
-  const refreshStored = () => void downloadedModels().then(setStored).catch(() => {});
-  useEffect(() => {
-    if (open) refreshStored();
-  }, [open, model.status, model.activeId]);
-  const mb = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
-  const total = [...stored.values()].reduce((a, b) => a + b, 0);
+  const { stored, refresh, total } = useStoredModels(open);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -64,47 +54,14 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
               </Label>
               <Switch id="use-ml" checked={settings.useML} onCheckedChange={(v) => updateSettings({ useML: v })} />
             </div>
-            <RadioGroup value={settings.model} onValueChange={(id) => updateSettings({ model: id, modelChosen: true })} disabled={!settings.useML} aria-label="Model" className="gap-2">
-              {MODELS.map((m) => (
-                <Label
-                  key={m.id}
-                  htmlFor={m.id}
-                  className={cn(
-                    'flex items-start gap-3 rounded-lg border p-3 font-normal transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-accent',
-                    !settings.useML && 'opacity-50',
-                  )}
-                >
-                  <RadioGroupItem id={m.id} value={m.id} className="mt-0.5" />
-                  <span className="flex flex-1 flex-col gap-0.5">
-                    <span className="text-sm font-medium">{m.name}</span>
-                    <span className="text-xs text-muted-foreground">{m.description}</span>
-                    {stored.has(m.id) ? (
-                      <span className="mt-1 flex items-center gap-2 text-xs text-teal-700">
-                        <span className="size-1.5 bg-teal" aria-hidden /> On this device · {mb(stored.get(m.id)!)}
-                        <button
-                          type="button"
-                          className="ml-auto text-muted-foreground underline-offset-2 hover:text-destructive hover:underline disabled:opacity-40"
-                          disabled={model.status === 'loading'}
-                          aria-label={`Remove ${m.name} from this device`}
-                          onClick={(e) => {
-                            e.preventDefault(); // don't select the model
-                            void removeModel(m.id).then(refreshStored);
-                          }}
-                        >
-                          Remove
-                        </button>
-                      </span>
-                    ) : (
-                      <span className="mt-1 text-xs text-muted-foreground">Downloads {m.sizeMB} MB the first time it's used</span>
-                    )}
-                  </span>
-                </Label>
-              ))}
-            </RadioGroup>
+            <ModelPicker stored={stored} refresh={refresh} disabled={!settings.useML} />
             {settings.useML && (
               <div className="flex flex-col gap-2 text-sm">
                 {model.status === 'idle' && (
-                  <Button size="sm" variant="outline" className="w-fit" onClick={() => void ensureModel().catch(() => {})}>Load now</Button>
+                  <span className="flex flex-wrap items-center gap-2">
+                    <Button size="sm" className="w-fit" onClick={activateModel}>Activate this model</Button>
+                    <span className="text-xs text-muted-foreground">Nothing downloads or loads until you activate it.</span>
+                  </span>
                 )}
                 {model.status === 'loading' && (
                   <span className="flex items-center gap-2">

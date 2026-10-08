@@ -12,6 +12,7 @@ const page = await browser.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 await page.goto(URL);
+await page.getByRole('button', { name: /Continue without AI/ }).click();   // unlocks the file picker
 const input = page.locator('input[type=file]').first();
 
 // The document pane is the <section> directly inside <main>.

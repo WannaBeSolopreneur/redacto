@@ -1,10 +1,15 @@
 import { useRef, useState } from 'react';
-import { ClipboardPaste, Lock, Sparkles, Upload, WandSparkles } from 'lucide-react';
+import { Check, ClipboardPaste, Lock, Sparkles, Upload, WandSparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ACCEPT, FORMATS_LABEL } from '../formats';
-import { addFiles, addText } from '../state/app';
+import { activateModel, addFiles, addText, continueWithoutAI, store } from '../state/app';
+import { useSlice } from '../state/store';
+import { getModel } from '../ml/models';
+import { Spinner } from './brand';
+import { ModelPicker, useStoredModels } from './ModelPicker';
+import { useElapsed } from './TopBar';
 
 export const SAMPLE = `Patient: Maria Gonzalez   DOB: 04/12/1987   MRN: 00483921
 Address: 742 Evergreen Terrace, Springfield, IL 62704
@@ -59,9 +64,89 @@ const TRUST = [
   { Icon: WandSparkles, title: 'You stay in control', body: 'Review every finding, keep what you need, and export a clean copy with no hidden text or metadata.' },
 ];
 
+function StepHeading({ id, n, done, children }: { id: string; n: number; done: boolean; children: React.ReactNode }) {
+  return (
+    <h2 id={id} className="flex items-center gap-3 text-base font-semibold">
+      <span className={cn('grid size-7 place-items-center font-mono text-sm', done ? 'bg-teal text-white' : 'bg-primary text-primary-foreground')}>
+        {done ? <Check className="size-4" /> : n}
+      </span>
+      {children}
+    </h2>
+  );
+}
+
+/** Step 1: choose a model and activate it. Nothing downloads or loads before the click. */
+function ModelStep() {
+  const settings = useSlice(store, (s) => s.settings);
+  const model = useSlice(store, (s) => s.model);
+  const { stored, refresh } = useStoredModels();
+  const elapsed = useElapsed(model.status === 'loading' ? model.startedAt : null);
+  const [changing, setChanging] = useState(false);
+  const selected = getModel(settings.model);
+  const ready = settings.useML && model.status === 'ready';
+
+  if (!settings.useML) {
+    return (
+      <section aria-labelledby="step-model" className="border bg-card p-5 shadow-sm">
+        <StepHeading id="step-model" n={1} done>AI model off: patterns only</StepHeading>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Emails, phone numbers, IDs, cards and addresses are still found. Names need the AI model.{' '}
+          <Button variant="link" size="sm" className="h-auto p-0" onClick={activateModel}>Turn the AI model on</Button>
+        </p>
+      </section>
+    );
+  }
+  if (ready && !changing) {
+    const active = getModel(model.activeId ?? settings.model);
+    return (
+      <section aria-labelledby="step-model" className="border bg-card p-5 shadow-sm">
+        <StepHeading id="step-model" n={1} done>{active.name} is active</StepHeading>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Running on this device{model.info ? ` · ${model.info.threads} CPU thread${model.info.threads > 1 ? 's' : ''}` : ''}.{' '}
+          <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setChanging(true)}>Change model</Button>
+        </p>
+        {model.notice && <p className="mt-2 rounded-md bg-amber-50 p-2 text-xs text-amber-900">{model.notice}</p>}
+      </section>
+    );
+  }
+  return (
+    <section aria-labelledby="step-model" className="flex flex-col gap-3 border bg-card p-5 shadow-sm">
+      <StepHeading id="step-model" n={1} done={false}>Choose your AI model</StepHeading>
+      <p className="text-sm text-muted-foreground">It finds names and other context, and runs entirely in this tab. Nothing downloads until you activate it.</p>
+      <ModelPicker stored={stored} refresh={refresh} />
+      {model.status === 'loading' ? (
+        <div className="flex flex-col gap-2 text-sm">
+          <span className="flex items-center gap-2">
+            <Spinner className="text-primary" />
+            {model.fromDevice
+              ? `Loading ${selected.name} from this device… ${elapsed}s`
+              : model.progress > 0 && model.progress < 100 ? `Downloading ${selected.name}… ${Math.round(model.progress)}%` : `Preparing ${selected.name}… ${elapsed}s`}
+          </span>
+          {!model.fromDevice && model.progress > 0 && (
+            <div className="h-1 w-full overflow-hidden bg-muted"><div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round(model.progress)}%` }} /></div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Button onClick={() => { setChanging(false); activateModel(); }}>
+            {stored.has(selected.id) ? `Activate ${selected.name.split(' · ')[0]}` : `Download & activate ${selected.name.split(' · ')[0]} (${selected.sizeMB} MB)`}
+          </Button>
+          <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={continueWithoutAI}>
+            Continue without AI (patterns only)
+          </Button>
+        </div>
+      )}
+      {model.status === 'error' && (
+        <p className="rounded-md bg-red-50 p-2 text-xs text-destructive">{model.error}</p>
+      )}
+    </section>
+  );
+}
+
 export function Welcome() {
   const [pasting, setPasting] = useState(false);
   const [text, setText] = useState('');
+  const filesReady = useSlice(store, (s) => !s.settings.useML || s.model.status === 'ready');
 
   return (
     <main className="flex-1 overflow-y-auto">
@@ -75,9 +160,16 @@ export function Welcome() {
             this tab. No uploads. No account.
           </p>
 
-          <div className="border bg-card p-5 shadow-sm">
-            {!pasting ? (
-              <div className="flex flex-col items-center gap-3 border border-dashed border-input bg-background px-4 py-10 text-center">
+          <ModelStep />
+
+          <section aria-labelledby="step-files" className={cn('border bg-card p-5 shadow-sm transition-opacity', !filesReady && 'opacity-60')}>
+            <StepHeading id="step-files" n={2} done={false}>Add your files</StepHeading>
+            {!filesReady ? (
+              <p className="mt-3 border border-dashed border-input bg-background px-4 py-8 text-center text-sm text-muted-foreground">
+                Activate a model above first, or continue without AI.
+              </p>
+            ) : !pasting ? (
+              <div className="mt-3 flex flex-col items-center gap-3 border border-dashed border-input bg-background px-4 py-10 text-center">
                 <Upload className="size-6 text-primary" />
                 <strong className="text-base font-semibold">Drop files anywhere on this page</strong>
                 <span className="text-sm text-muted-foreground">{FORMATS_LABEL}</span>
@@ -92,7 +184,7 @@ export function Welcome() {
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="mt-3 flex flex-col gap-3">
                 <Textarea
                   autoFocus
                   rows={9}
@@ -109,7 +201,7 @@ export function Welcome() {
                 </div>
               </div>
             )}
-          </div>
+          </section>
         </div>
 
         <aside className="flex flex-col gap-6 lg:pt-3">

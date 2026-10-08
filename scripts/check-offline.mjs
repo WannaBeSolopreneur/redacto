@@ -26,6 +26,7 @@ const ctx = await browser.newContext({ acceptDownloads: true, bypassCSP: true })
 const page = await ctx.newPage();
 const failed = []; page.on('requestfailed', (r) => failed.push(r.url().replace(/^https?:\/\/[^/]+/, '')));
 await page.goto(URL);
+await page.getByRole('button', { name: /^(Download & activate|Activate) / }).first().click();   // nothing loads before this
 await page.getByRole('button', { name: /^AI model: (?!not loaded)/ }).waitFor({ timeout: 120000 });   // model ready
 await page.getByRole('button', { name: 'Ready offline' }).waitFor({ timeout: 120000 });                  // the rest of the app
 await ctx.setOffline(true);

@@ -75,6 +75,7 @@ const checkState = (off: number, count: number) => (off === 0 ? true : off < cou
 
 export function Findings({ d }: { d: DocState }) {
   const settings = useSlice(store, (s) => s.settings);
+  const modelActive = useSlice(store, (s) => s.model.activated);
   const view = docView(d, settings);
   const groups = useMemo(() => groupEntities(view.entities, view.isOff), [view]);
   // Collapsed state per type; large groups start collapsed.
@@ -132,7 +133,7 @@ export function Findings({ d }: { d: DocState }) {
       )}
       {d.phase === 'ready' && awaitingModel(d) && (
         <p className="mx-4 mb-2 flex items-center gap-2 text-xs text-muted-foreground">
-          <Spinner className="size-3" /> More may appear when the AI model finishes.
+          {modelActive ? <><Spinner className="size-3" /> More may appear when the AI model finishes.</> : 'Names appear once the AI model is activated.'}
         </p>
       )}
       {d.phase === 'ready' && groups.length === 0 && !awaitingModel(d) && (
@@ -225,11 +226,13 @@ function ExportFooter({ d, visual, hasMapping, mode }: { d: DocState; visual: bo
   const ext = d.doc?.table?.csv?.delimiter === '\t' ? 'tsv' : d.name.split('.').pop()?.toLowerCase();
   const outExt = d.doc?.kind === 'xlsx' ? 'XLSX' : d.doc?.kind === 'image' ? 'PNG' : d.doc?.kind === 'pdf' ? 'PDF' : d.doc?.kind === 'docx' ? 'DOCX' : d.doc?.kind === 'csv' ? (ext === 'tsv' ? 'TSV' : 'CSV') : 'TXT';
   const step = d.phase !== 'ready' || awaitingModel(d) ? 0 : canExport(d) ? 2 : 1;
+  const activated = useSlice(store, (s) => s.model.activated);
 
   let label: React.ReactNode = <><Download /> Download redacted {outExt}</>;
   if (d.phase === 'reading') label = 'Reading file…';
   else if (d.phase === 'error') label = 'Nothing to download';
   else if (d.exporting) label = <><Spinner /> {d.exporting.msg}</>;
+  else if (awaitingModel(d) && !activated) label = 'Activate the AI model first';
   else if (awaitingModel(d)) label = <><Spinner /> Finding names…</>;
 
   const button = useRef<HTMLButtonElement>(null);

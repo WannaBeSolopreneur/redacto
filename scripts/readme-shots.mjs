@@ -68,8 +68,9 @@ const customers = 'Customer,Email,Phone,City,Account,Notes,Spend\n' + [
 {
   const page = await newPage();
   await page.goto(`${BASE}/app/`);
-  await page.getByRole('button', { name: /^AI model: (?!not loaded)/ }).waitFor({ timeout: 120000 });
   await shoot(page, 'app-welcome');
+  await page.getByRole('button', { name: /^(Download & activate|Activate) / }).first().click();
+  await page.getByRole('button', { name: /^AI model: / }).waitFor({ timeout: 120000 });
 
   const nav = page.getByRole('navigation', { name: 'Documents' });
   const done = (name) => nav.getByRole('button', { name: new RegExp(`^${name.replace('.', '\\.')}.*(to redact|Nothing found)`) }).waitFor({ timeout: 120000 });

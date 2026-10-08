@@ -1,12 +1,13 @@
 import { useLayoutEffect, useRef } from 'react';
-import { Download, Plus, TriangleAlert, X } from 'lucide-react';
+import { Download, Plus, Sparkles, TriangleAlert, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { awaitingModel, canExport, docView, downloadAll, removeDoc, retryModel, selectDoc, store, updateDocUi, type DocState } from '../state/app';
+import { activateModel, awaitingModel, canExport, continueWithoutAI, docView, downloadAll, removeDoc, retryModel, selectDoc, store, updateDocUi, type DocState } from '../state/app';
+import { getModel } from '../ml/models';
 import { useSlice } from '../state/store';
 import { KindIcon, Spinner } from './brand';
 import { Findings } from './Findings';
@@ -99,6 +100,7 @@ function kindFromName(name: string) {
 }
 
 function DocStatus({ d, count }: { d: DocState; count: number }) {
+  const activated = useSlice(store, (s) => s.model.activated);
   const busy = (msg: string) => (
     <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
       <Spinner className="size-3" /> <span className="truncate">{msg}</span>
@@ -107,6 +109,7 @@ function DocStatus({ d, count }: { d: DocState; count: number }) {
   if (d.phase === 'reading') return busy(d.progress?.msg ?? 'Reading…');
   if (d.phase === 'error') return <span className="text-xs text-destructive">Couldn't open</span>;
   if (d.exporting) return busy('Exporting…');
+  if (awaitingModel(d) && !activated) return <span className="text-xs text-muted-foreground">Waiting for AI model</span>;
   if (awaitingModel(d)) return busy(d.mlProgress ? `Scanning ${d.mlProgress.completedValues.toLocaleString()} / ${d.mlProgress.uniqueValues.toLocaleString()}` : 'Finding names…');
   return (
     <span className={cn('text-xs text-muted-foreground', d.mlState === 'failed' && 'text-amber-700')}>
@@ -266,6 +269,22 @@ export function flash(el: HTMLElement) {
 }
 
 function ModelBanner({ d }: { d: DocState }) {
+  const activated = useSlice(store, (s) => s.model.activated);
+  const selected = useSlice(store, (s) => getModel(s.settings.model));
+  if (awaitingModel(d) && !activated)
+    return (
+      <Alert className="border-primary/20 bg-accent">
+        <Sparkles className="text-primary" />
+        <AlertTitle>The AI model isn't active yet, so names aren't found.</AlertTitle>
+        <AlertDescription>
+          <span>Pattern matches (emails, phones, IDs) are shown. Activate the model to find names; nothing downloads until you do.</span>
+          <span className="mt-1 flex flex-wrap items-center gap-3">
+            <Button size="sm" onClick={activateModel}>Activate {selected.name.split(' · ')[0]} ({selected.sizeMB} MB)</Button>
+            <Button size="sm" variant="link" className="h-auto p-0" onClick={continueWithoutAI}>Continue without AI</Button>
+          </span>
+        </AlertDescription>
+      </Alert>
+    );
   if (awaitingModel(d))
     return (
       <Alert className="border-primary/20 bg-accent">

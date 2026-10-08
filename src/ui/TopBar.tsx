@@ -100,7 +100,7 @@ function ModelChip({ onClick }: { onClick: () => void }) {
 
   const label = {
     off: 'Rules only',
-    idle: 'AI model: not loaded',
+    idle: 'Choose AI model',
     loading: model.fromDevice
       ? `Loading model from this device ${elapsed}s`
       : model.progress > 0 && model.progress < 100 ? `Downloading model ${Math.round(model.progress)}%` : `Preparing model ${elapsed}s`,
