@@ -123,7 +123,17 @@ export const MODELS: NerModel[] = [
  * describes the same gap). There, default to the 66M model; it's still selectable.
  */
 const SLOW_WASM = typeof navigator !== 'undefined' && /firefox/i.test(navigator.userAgent);
-export const DEFAULT_MODEL = SLOW_WASM ? MODELS[2].id : MODELS[1].id;
+
+/**
+ * Phones and tablets. iOS kills a tab that uses too much memory ("A problem repeatedly occurred"), and loading
+ * the 125M model needs several hundred MB. Phones default to the 66M model (about 40% less) on one thread.
+ * iPadOS reports itself as a Mac, so touch support is the tell.
+ */
+export const IS_PHONE =
+  typeof navigator !== 'undefined' &&
+  (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && (navigator.maxTouchPoints ?? 0) > 1));
+
+export const DEFAULT_MODEL = SLOW_WASM || IS_PHONE ? MODELS[2].id : MODELS[1].id;
 /** Used automatically if the selected model fails to load. */
 export const FALLBACK_MODEL = MODELS[2].id;
 export const getModel = (id: string) => MODELS.find((m) => m.id === id) ?? MODELS[1];

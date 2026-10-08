@@ -55,7 +55,7 @@ export function SettingsDrawer({ open, onOpenChange }: { open: boolean; onOpenCh
               </Label>
               <Switch id="use-ml" checked={settings.useML} onCheckedChange={(v) => updateSettings({ useML: v })} />
             </div>
-            <RadioGroup value={settings.model} onValueChange={(id) => updateSettings({ model: id })} disabled={!settings.useML} aria-label="Model" className="gap-2">
+            <RadioGroup value={settings.model} onValueChange={(id) => updateSettings({ model: id, modelChosen: true })} disabled={!settings.useML} aria-label="Model" className="gap-2">
               {MODELS.map((m) => (
                 <Label
                   key={m.id}

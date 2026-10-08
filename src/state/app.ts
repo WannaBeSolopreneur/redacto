@@ -6,7 +6,7 @@ import { loadFile, textDoc } from '../formats';
 import type { Area, ExportResult, LoadedDoc } from '../formats/types';
 import { csvLiteral, tableEntities, tableStructural, type TableCell, type TableData } from '../formats/table';
 import { classifyColumn } from '../formats/columns';
-import { FALLBACK_MODEL, getModel, MODELS } from '../ml/models';
+import { FALLBACK_MODEL, getModel, IS_PHONE, MODELS } from '../ml/models';
 import { loadNer, onNerProgress, runNer, type LoadInfo } from '../ml/ner';
 import type { TableScanProgress } from '../ml/table-scan';
 import { createStore } from './store';
@@ -96,7 +96,9 @@ function loadSettings(): Settings {
       enabled,
       mode: saved.mode === 'redact' || saved.mode === 'pseudonymize' || saved.mode === 'label' ? saved.mode : d.mode,
       useML: typeof saved.useML === 'boolean' ? saved.useML : d.useML,
-      model: MODELS.some((m) => m.id === saved.model) ? saved.model! : d.model,
+      // A model saved as a mere default follows the device's default (phones changed to the smaller one).
+      model: saved.modelChosen && MODELS.some((m) => m.id === saved.model) ? saved.model! : d.model,
+      modelChosen: saved.modelChosen === true,
       // 0.6 was the old default under the old scoring; anything else was chosen by the user.
       minScore: typeof saved.minScore === 'number' && saved.minScore !== 0.6 ? Math.min(0.99, Math.max(0.3, saved.minScore)) : d.minScore,
       denyList: [],
@@ -312,9 +314,46 @@ onNerProgress((p) => {
   if (get().model.status === 'loading') setModel({ progress: p });
 });
 
+/**
+ * Crash guard. A model load that runs the device out of memory kills the tab, and the reload would load the same
+ * model and crash again. A marker is kept while a model loads; if a page starts and finds one, the last load never
+ * finished, so this page uses the small model instead, or rules only if the small one was what died.
+ */
+const LOADING_KEY = 'redacto.modelLoading';
+const crashedModel: string | null = (() => {
+  try {
+    const m = JSON.parse(localStorage.getItem(LOADING_KEY) ?? 'null') as { id: string; at: number } | null;
+    localStorage.removeItem(LOADING_KEY);
+    return m && Date.now() - m.at < 15 * 60_000 ? m.id : null;
+  } catch {
+    return null;
+  }
+})();
+/** Don't load a model on this page until the user asks (Retry): the small one crashed last time. */
+let modelBlocked = crashedModel === FALLBACK_MODEL;
+const crashNotice = crashedModel
+  ? `${getModel(crashedModel).name} stopped the page last time, likely because this device ran low on memory.`
+  : null;
+// A normal close or navigation fires pagehide; a tab killed for memory doesn't. Only the latter should count.
+if (typeof window !== 'undefined') window.addEventListener('pagehide', () => { if (modelLoad) markLoading(null); });
+const markLoading = (id: string | null) => {
+  try {
+    if (id) localStorage.setItem(LOADING_KEY, JSON.stringify({ id, at: Date.now() }));
+    else localStorage.removeItem(LOADING_KEY);
+  } catch {
+    // Storage disabled: no crash guard, nothing else changes.
+  }
+};
+
 /** Load the selected model (falling back to the fast one). Resolves to the id actually loaded. */
 export function ensureModel(): Promise<string> {
-  const requested = get().settings.model;
+  if (modelBlocked) {
+    const msg = `${crashNotice} Only pattern-based detection is on. Choose Retry to try the AI model again.`;
+    setModel({ status: 'error', error: msg });
+    return Promise.reject(new Error(msg));
+  }
+  // After a crash, this page uses the small model, whatever was selected.
+  const requested = crashedModel && crashedModel !== FALLBACK_MODEL ? FALLBACK_MODEL : get().settings.model;
   if (modelLoad?.requested === requested) return modelLoad.promise;
   const promise: Promise<string> = (async () => {
     setModel({ status: 'loading', progress: 0, startedAt: Date.now(), error: null, notice: null, info: null, activeId: null });
@@ -323,16 +362,25 @@ export function ensureModel(): Promise<string> {
     let lastErr: unknown;
     for (const id of attempts) {
       try {
-        const info = await loadNer(id);
+        markLoading(id);
+        // One thread on phones: less memory, and multi-threaded WebAssembly has crashed iOS Safari.
+        const info = await loadNer(id, IS_PHONE ? { threads: 1 } : undefined);
+        markLoading(null);
         if (stale()) throw new Error('Model selection changed');
         setModel({
           status: 'ready',
           activeId: id,
           info,
-          notice: id === requested ? null : `${getModel(requested).name} failed to load, so ${getModel(id).name} is used instead.`,
+          notice:
+            id !== requested
+              ? `${getModel(requested).name} failed to load, so ${getModel(id).name} is used instead.`
+              : crashNotice && id !== get().settings.model
+                ? `${crashNotice} ${getModel(id).name} is used instead. You can switch back in Settings.`
+                : null,
         });
         return id;
       } catch (e) {
+        markLoading(null);
         if (stale()) throw e;
         lastErr = e;
       }
@@ -417,6 +465,7 @@ function restartModel() {
 }
 
 export function retryModel() {
+  modelBlocked = false;
   restartModel();
 }
 

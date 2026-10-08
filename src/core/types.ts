@@ -57,6 +57,8 @@ export interface Settings {
   useML: boolean;
   /** NER model id, see src/ml/models.ts. */
   model: string;
+  /** The user picked the model in Settings (otherwise the device's default applies). */
+  modelChosen?: boolean;
   minScore: number;
   /** Terms that are always redacted (case-insensitive, whole word). */
   denyList: string[];
