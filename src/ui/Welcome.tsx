@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react';
-import { Check, ClipboardPaste, Upload, WandSparkles } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, ArrowUpRight, Check, ClipboardPaste, Cloud, Download, FileText, Laptop, Lock, Smartphone, Sparkles, Upload, WandSparkles } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ACCEPT, FORMATS_LABEL } from '../formats';
-import { activateModel, addFiles, addText, continueWithoutAI, store } from '../state/app';
+import { activateModel, addFiles, addText, continueWithoutAI, store, updateSettings } from '../state/app';
 import { useSlice } from '../state/store';
-import { getModel } from '../ml/models';
+import { IS_PHONE, MODELS, getModel, modelCard } from '../ml/models';
 import { Spinner } from './brand';
-import { ModelPicker, useStoredModels } from './ModelPicker';
+import { useStoredModels } from './ModelPicker';
 import { useElapsed } from './TopBar';
 
 export const SAMPLE = `Patient: Maria Gonzalez   DOB: 04/12/1987   MRN: 00483921
@@ -51,78 +53,148 @@ export function Chip({ type, children, className }: { type: string; children: Re
   );
 }
 
-const HOW = [
-  { title: 'Pick a model', body: 'Larger models find more. Smaller ones are faster.' },
-  { title: 'Download it once', body: 'It is saved in this browser. After that it loads from your device, even offline.' },
-  { title: 'Add your documents', body: 'They are read in this tab. Nothing is uploaded.' },
-];
+/** Five-step meter: filled squares out of five. */
+function Meter({ label, value }: { label: string; value: number }) {
+  return (
+    <span className="flex items-center gap-1.5" aria-label={`${label}: ${value} of 5`}>
+      <span className="w-9 text-[10px] tracking-wide text-muted-foreground uppercase">{label}</span>
+      <span className="flex gap-0.5" aria-hidden>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span key={i} className={cn('h-1.5 w-2.5', i <= value ? 'bg-primary' : 'bg-muted')} />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/** Cloud → this device → your documents stay here. */
+function HowItWorks() {
+  const Device = IS_PHONE ? Smartphone : Laptop;
+  const node = 'grid size-11 place-items-center border bg-card sm:size-14';
+  return (
+    <figure aria-label="How it works" className="flex flex-col gap-2">
+      <div className="flex items-center">
+        <span className={node}><Cloud className="size-5 text-muted-foreground sm:size-6" /></span>
+        <span className="relative mx-1 flex flex-1 items-center">
+          <span className="h-px flex-1 border-t border-dashed border-primary" />
+          <ArrowRight className="-ml-1 size-3.5 text-primary" />
+        </span>
+        <span className={cn(node, 'relative border-primary bg-accent')}>
+          <Device className="size-5 text-primary sm:size-6" />
+          <Sparkles className="absolute -top-1.5 -right-1.5 size-3.5 text-gold" />
+        </span>
+        <span className="relative mx-1 flex flex-1 items-center">
+          <span className="h-px flex-1 border-t border-dashed border-teal" />
+          <ArrowLeftRight className="size-3.5 text-teal" />
+          <span className="h-px flex-1 border-t border-dashed border-teal" />
+        </span>
+        <span className={cn(node, 'relative')}>
+          <FileText className="size-5 sm:size-6" />
+          <Lock className="absolute -right-1.5 -bottom-1.5 size-4 bg-background p-0.5 text-teal" />
+        </span>
+      </div>
+      <figcaption className="grid grid-cols-3 text-[11px] leading-tight text-muted-foreground sm:text-xs">
+        <span>Download once</span>
+        <span className="text-center font-medium text-foreground">AI runs on your device</span>
+        <span className="text-right">Files never leave it</span>
+      </figcaption>
+    </figure>
+  );
+}
 
 /**
- * First run: set up the model before any document is accepted. Explains why a download is needed, then lets
- * people pick and activate one. Nothing downloads or loads before the click.
+ * First run: get a model onto the device before any document is accepted. Nothing downloads or loads before
+ * the click. Sized to fit one phone screen.
  */
 function ModelSetup({ onDone }: { onDone: () => void }) {
   const settings = useSlice(store, (s) => s.settings);
   const model = useSlice(store, (s) => s.model);
-  const { stored, refresh } = useStoredModels();
+  const { stored } = useStoredModels();
   const elapsed = useElapsed(model.status === 'loading' ? model.startedAt : null);
   const selected = getModel(settings.model);
   const tier = selected.name.split(' · ')[0];
+  const loading = model.status === 'loading';
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-14">
-      <header className="flex flex-col gap-3">
-        <p className="text-[11px] font-semibold tracking-widest text-primary uppercase">Before you add a document</p>
-        <h1 className="text-3xl leading-[1.08] font-semibold tracking-[-0.03em] text-balance sm:text-4xl">
-          First, get the AI model onto this device.
-        </h1>
-        <p className="text-base leading-relaxed text-secondary-foreground">
-          Redacto finds names, addresses and other personal details with a small AI model. The model runs inside this
-          browser tab, not on a server, which is why your documents never leave your device. So it has to be on your
-          device before you add one.
-        </p>
-      </header>
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-5 sm:gap-7 sm:px-6 sm:py-12">
+      <h1 className="text-2xl leading-tight font-semibold tracking-[-0.03em] sm:text-4xl">
+        First, get the AI model <span className="text-primary">onto this device.</span>
+      </h1>
 
-      <ol className="grid gap-px border bg-border sm:grid-cols-3">
-        {HOW.map((step, i) => (
-          <li key={step.title} className="flex gap-3 bg-card p-4 sm:flex-col sm:gap-2">
-            <span className="grid size-6 shrink-0 place-items-center bg-primary font-mono text-xs text-primary-foreground">{i + 1}</span>
-            <span className="flex flex-col gap-0.5">
-              <strong className="text-sm font-semibold">{step.title}</strong>
-              <span className="text-sm text-muted-foreground">{step.body}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
+      <HowItWorks />
 
-      <section aria-labelledby="choose-model" className="flex flex-col gap-3">
-        <h2 id="choose-model" className="text-base font-semibold">Choose a model</h2>
-        <ModelPicker stored={stored} refresh={refresh} />
-        {model.status === 'loading' ? (
-          <div className="flex flex-col gap-2 border bg-card p-4 text-sm" role="status">
-            <span className="flex items-center gap-2">
+      <RadioGroup
+        value={settings.model}
+        onValueChange={(id) => updateSettings({ model: id, modelChosen: true })}
+        disabled={loading}
+        aria-label="AI model"
+        className="grid grid-cols-2 gap-2"
+      >
+        {MODELS.map((m) => {
+          const [name, family] = m.name.split(' · ');
+          return (
+            <Label
+              key={m.id}
+              htmlFor={`setup-${m.id}`}
+              className={cn(
+                'relative flex flex-col items-start gap-1.5 border bg-card p-3 font-normal transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:shadow-[inset_0_0_0_1px_var(--primary)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
+                loading && 'opacity-60',
+              )}
+            >
+              <RadioGroupItem id={`setup-${m.id}`} value={m.id} className="sr-only" />
+              <span className="flex w-full items-baseline justify-between gap-2">
+                <span className="text-base font-semibold">{name}</span>
+                <a
+                  href={modelCard(m)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="-m-1 p-1 text-muted-foreground hover:text-primary"
+                  aria-label={`${family} model card on Hugging Face`}
+                  title="Model card on Hugging Face"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ArrowUpRight className="size-3.5" />
+                </a>
+              </span>
+              <Meter label="Finds" value={m.finds} />
+              <Meter label="Speed" value={m.speed} />
+              <span className={cn('mt-0.5 flex items-center gap-1 text-xs', stored.has(m.id) ? 'text-teal-700' : 'text-muted-foreground')}>
+                {stored.has(m.id) ? <><Check className="size-3" /> On device</> : <><Download className="size-3" /> {m.sizeMB} MB</>}
+                {IS_PHONE && m.sizeMB > 150 && <span className="ml-1 text-amber-700">· heavy</span>}
+              </span>
+            </Label>
+          );
+        })}
+      </RadioGroup>
+
+      <div className="flex flex-col items-center gap-3">
+        {loading ? (
+          <div className="flex w-full flex-col gap-2" role="status">
+            <div className="h-10 w-full overflow-hidden border bg-card">
+              <div
+                className="flex h-full items-center bg-accent transition-[width]"
+                style={{ width: `${model.fromDevice ? 100 : Math.max(4, Math.round(model.progress))}%` }}
+              />
+            </div>
+            <span className="flex items-center justify-center gap-2 text-sm">
               <Spinner className="text-primary" />
               {model.fromDevice
                 ? `Loading ${tier} from this device… ${elapsed}s`
                 : model.progress > 0 && model.progress < 100 ? `Downloading ${tier}… ${Math.round(model.progress)}%` : `Preparing ${tier}… ${elapsed}s`}
             </span>
-            {!model.fromDevice && model.progress > 0 && (
-              <div className="h-1 w-full overflow-hidden bg-muted"><div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round(model.progress)}%` }} /></div>
-            )}
-            <span className="text-xs text-muted-foreground">You can add documents as soon as it's ready.</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <Button size="lg" className="w-full sm:w-auto" onClick={() => { onDone(); activateModel(); }}>
-              {stored.has(selected.id) ? `Activate ${tier}` : `Download & activate ${tier} (${selected.sizeMB} MB)`}
-            </Button>
-            <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={() => { onDone(); continueWithoutAI(); }}>
-              Continue without AI (patterns only)
-            </Button>
-          </div>
+          <Button size="lg" className="w-full" onClick={() => { onDone(); activateModel(); }}>
+            {stored.has(selected.id) ? `Activate ${tier}` : `Download & activate ${tier} (${selected.sizeMB} MB)`}
+          </Button>
         )}
-        {model.status === 'error' && <p className="bg-red-50 p-2 text-xs text-destructive">{model.error}</p>}
-      </section>
+        {!loading && (
+          <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={() => { onDone(); continueWithoutAI(); }}>
+            Continue without AI (patterns only)
+          </Button>
+        )}
+        {model.status === 'error' && <p className="w-full bg-red-50 p-2 text-xs text-destructive">{model.error}</p>}
+      </div>
     </div>
   );
 }

@@ -8,6 +8,9 @@ export interface NerModel {
   /** ONNX file under onnx/, as fetched by scripts/setup-assets.mjs. */
   file: string;
   sizeMB: number;
+  /** 1-5, for the picker's meters: how much it finds (recall, types covered) and how fast it runs. */
+  finds: number;
+  speed: number;
   /** Model label (B-/I- prefix stripped) → app entity type; unmapped labels are ignored. */
   labels: Record<string, EntityType>;
 }
@@ -87,6 +90,8 @@ export const MODELS: NerModel[] = [
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 357,
+    finds: 5,
+    speed: 2,
     labels: OPENMED_LABELS,
   },
   {
@@ -96,6 +101,8 @@ export const MODELS: NerModel[] = [
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 125,
+    finds: 4,
+    speed: 3,
     labels: OPENMED_LABELS,
   },
   {
@@ -105,6 +112,8 @@ export const MODELS: NerModel[] = [
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 67,
+    finds: 3,
+    speed: 5,
     labels: OPENMED_LABELS,
   },
   {
@@ -114,6 +123,8 @@ export const MODELS: NerModel[] = [
     dtype: 'q8',
     file: 'onnx/model_quantized.onnx',
     sizeMB: 104,
+    finds: 1,
+    speed: 3,
     labels: { PER: 'PERSON', ORG: 'ORG', LOC: 'LOCATION' },
   },
 ];
