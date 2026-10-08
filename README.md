@@ -9,7 +9,7 @@
 Remove names, addresses, account numbers and 50+ other kinds of personal data from PDFs, Word, Excel, images and text,
 entirely in your browser. Nothing is uploaded.
 
-**[Try it →](https://redacto.asad-moulvi01.workers.dev/app/)** · [Website](https://redacto.asad-moulvi01.workers.dev)
+**[Try it →](https://redacto.cc/app/)** · [redacto.cc](https://redacto.cc)
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-6a2fd8)](LICENSE)
 ![Runs in your browser](https://img.shields.io/badge/runs-100%25%20in%20your%20browser-19c3a5)
@@ -179,12 +179,13 @@ Any static host works. Whatever serves the app must follow three rules (vite dev
 
 Without rule 1 it still works on one thread (~3x slower), and the UI says so.
 
-### Cloudflare (how redacto.asad-moulvi01.workers.dev is hosted)
+### Cloudflare (how redacto.cc is hosted)
 
 The repo deploys as a Cloudflare Worker with static assets (`wrangler.jsonc`, `cloudflare/worker.ts`). Static files
 are capped at 25 MiB, so the models live in an R2 bucket and the Worker streams them at `/models/*` from the same
 origin, which keeps the Content-Security-Policy intact. The Worker runs first on every request to add the three
-rules above, 304s included. Everything fits the free plan.
+rules above, 304s included, and redirects any other host (www, workers.dev) to `CANONICAL_HOST`. The custom
+domains are set in `wrangler.jsonc` under `routes`. Everything fits the free plan.
 
 ```bash
 npx wrangler login                              # once

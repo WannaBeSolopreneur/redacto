@@ -17,6 +17,8 @@ interface R2ObjectLike {
   body?: ReadableStream;
 }
 interface Env {
+  /** The one public address. Other hosts (www, workers.dev) redirect here. */
+  CANONICAL_HOST?: string;
   ASSETS: { fetch(request: Request): Promise<Response> };
   MODELS: { get(key: string, options?: { range?: Headers; onlyIf?: Headers }): Promise<R2ObjectLike | null> };
 }
@@ -60,7 +62,16 @@ async function model(request: Request, env: Env, key: string): Promise<Response>
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const path = new URL(request.url).pathname;
+    const url = new URL(request.url);
+    // One address, always HTTPS (the app needs a secure context for threads and offline use).
+    const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    if (!local && ((env.CANONICAL_HOST && url.hostname !== env.CANONICAL_HOST) || url.protocol === 'http:')) {
+      if (env.CANONICAL_HOST) url.hostname = env.CANONICAL_HOST;
+      url.protocol = 'https:';
+      url.port = '';
+      return Response.redirect(url.toString(), 301);
+    }
+    const path = url.pathname;
     const upstream = path.startsWith('/models/') ? await model(request, env, decodeURIComponent(path.slice('/models/'.length))) : await env.ASSETS.fetch(request);
     const response = new Response(upstream.body, upstream);
     for (const [k, v] of Object.entries(ISOLATION)) response.headers.set(k, v);

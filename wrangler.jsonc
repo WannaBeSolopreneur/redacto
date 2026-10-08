@@ -9,6 +9,14 @@
     "binding": "ASSETS",
     "run_worker_first": true
   },
+  // redacto.cc is the public address; www and the workers.dev URL redirect to it (cloudflare/worker.ts).
+  "routes": [
+    { "pattern": "redacto.cc", "custom_domain": true },
+    { "pattern": "www.redacto.cc", "custom_domain": true }
+  ],
+  "vars": { "CANONICAL_HOST": "redacto.cc" },
+  // Keep the old address alive so shared links redirect instead of breaking.
+  "workers_dev": true,
   "r2_buckets": [{ "binding": "MODELS", "bucket_name": "redacto-models" }],
   "observability": { "enabled": true }
 }
