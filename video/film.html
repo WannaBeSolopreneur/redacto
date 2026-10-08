@@ -82,6 +82,45 @@ body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-fon
 #end p { margin: 30px 0 0; display: flex; gap: 26px; font: 500 28px Inter; color: var(--mute); }
 #end p span { display: flex; align-items: center; gap: 12px; }
 #end p i { width: 10px; height: 10px; background: var(--teal); }
+
+/* How it works */
+.panel { background: var(--card); border: 1px solid var(--line); box-shadow: 0 40px 80px -40px rgba(18,17,24,.28); }
+.eyebrow { font: 600 15px Inter; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+#modelCard { width: 400px; padding: 30px 34px; box-sizing: border-box; }
+#modelCard h4 { margin: 8px 0 0; font: 650 36px Inter; letter-spacing: -0.02em; }
+#modelCard .sub { margin-top: 6px; font: 400 22px Inter; color: var(--ink-2); }
+#sizeRow { margin-top: 28px; }
+#sizeBar { height: 26px; background: var(--ink); width: 330px; }
+#sizeLabel { margin-top: 10px; font: 600 24px var(--mono); }
+#sizeNote { margin-top: 6px; display: flex; align-items: center; gap: 8px; font: 600 19px Inter; color: #0b8a73; }
+#browser { width: 560px; height: 400px; overflow: hidden; }
+#browser .bar { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 18px; border-bottom: 1px solid var(--line); background: var(--muted); }
+#browser .bar i { width: 12px; height: 12px; border-radius: 50%; background: #d4d4cf; }
+#browser .url { margin-left: 12px; flex: 1; padding: 6px 14px; background: #fff; border: 1px solid var(--line); font: 500 18px Inter; color: var(--ink-2); }
+#browser .ready { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); background: #fff; font: 600 16px Inter; white-space: nowrap; }
+#browser .ready b { width: 8px; height: 8px; background: var(--teal); }
+#browser .body { padding: 28px 30px; display: flex; flex-direction: column; gap: 18px; font: 400 24px Inter; }
+.mrow { display: flex; align-items: center; gap: 12px; }
+.mrow .sq { width: 10px; height: 10px; background: var(--primary); }
+#dlTrack { height: 12px; background: var(--muted); }
+#dlFill { height: 100%; background: var(--primary); width: 0; }
+#modelBlock { padding: 8px 14px; background: var(--primary); color: #fff; font: 700 20px var(--mono); white-space: nowrap; }
+#wifi { width: 180px; height: 180px; color: var(--ink); }
+#wifiLabel { font: 600 24px Inter; color: var(--mute); text-align: center; width: 180px; }
+/* Trust the code */
+#gh { width: 780px; box-sizing: border-box; }
+#gh .head { display: flex; align-items: center; gap: 14px; padding: 24px 30px; border-bottom: 1px solid var(--line); font: 600 28px Inter; }
+#gh .head svg { width: 36px; height: 36px; }
+#gh .head .pub { padding: 3px 10px; border: 1px solid var(--line); font: 500 16px Inter; color: var(--mute); }
+#gh .meta { display: flex; gap: 22px; padding: 16px 30px; border-bottom: 1px solid var(--line); font: 500 20px Inter; color: var(--ink-2); }
+#gh .meta b { color: var(--ink); }
+#gh .files { padding: 8px 30px; font: 500 21px var(--mono); color: var(--ink-2); }
+#gh .files div { padding: 9px 0; border-bottom: 1px solid var(--line); }
+#gh pre { margin: 0; padding: 22px 30px 26px; background: #121118; color: #e8e6f0; font: 400 19px/1.55 var(--mono); white-space: pre-wrap; }
+#gh pre .c { color: #9a97a8; }
+#gh pre .k { color: #c9b6ff; }
+#oss { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--primary); color: #fff; font: 700 28px Inter; white-space: nowrap; }
+#oss svg { width: 30px; height: 30px; }
 #stars svg { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; }
 </style>
 </head>
@@ -115,11 +154,43 @@ body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-fon
   <div class="row res"><span>LDL</span><span><b>168 mg/dL</b><span class="high">HIGH</span></span></div>
 </div>
 
+
+<div id="modelCard" class="it panel">
+  <div class="eyebrow">Open-source AI model</div>
+  <h4>OpenMed PII</h4>
+  <div class="sub" id="details">trained to spot personal details</div>
+  <div id="sizeRow"><div id="sizeBar"></div><div id="sizeLabel">497 MB · float32</div>
+    <div id="sizeNote"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12.5l4.2 4.2L19 7"/></svg>int8 · 4× smaller · accuracy checked</div></div>
+</div>
+<div id="modelBlock" class="it">125 MB</div>
+<div id="browser" class="it panel">
+  <div class="bar"><i></i><i></i><i></i><span class="url">redacto.cc/app</span><span class="ready" id="readyBadge"><b></b>Ready offline</span></div>
+  <div class="body">
+    <div class="mrow" id="mModel"><span class="sq"></span><span>AI model: <b>Accurate</b> · in your browser</span></div>
+    <div style="position:relative;height:64px">
+      <div id="dlRow" style="position:absolute;inset:0"><div class="mrow" style="justify-content:space-between"><span id="dlText">Downloading…</span><span id="dlPct">0%</span></div><div id="dlTrack" style="margin-top:10px"><div id="dlFill"></div></div></div>
+      <div class="mrow" id="mStored" style="position:absolute;inset:0"><span class="sq" style="background:var(--teal)"></span><span>On this device · 125 MB</span></div>
+    </div>
+    <div class="mrow" id="mWork">Patient: <span class="val" data-k="5" data-type="PERSON"></span></div>
+  </div>
+</div>
+<div id="wifiWrap" class="it">
+  <svg id="wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5 12a10.5 10.5 0 0 1 14 0"/><path d="M8.5 15.5a5.5 5.5 0 0 1 7 0"/><path d="M12 19.5h.01" stroke-width="2.6"/><path id="wifiSlash" d="M3 3l18 18" stroke="#d42a4c" stroke-width="2.2" stroke-dasharray="26" stroke-dashoffset="26"/></svg>
+  <div id="wifiLabel">Wi-Fi on</div>
+</div>
+<div id="gh" class="it panel">
+  <div class="head"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>WannaBeSolopreneur / <b>redacto</b><span class="pub">Public</span></div>
+  <div class="meta"><span>License: <b>Apache-2.0</b></span><span>Every line on GitHub</span></div>
+  <div class="files"><div>src/ml/ner.worker.ts</div><div>src/core/rules.ts</div><div>cloudflare/worker.ts</div></div>
+  <pre id="code"></pre>
+</div>
+<div id="oss" class="it"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>100% open source</div>
+
 <div id="end" class="it">
   <img src="img/icon.png" alt="">
   <div class="word">Redacto</div>
   <h2>Make private info <em>disappear</em><br>before AI sees it.</h2>
-  <p><span><i></i>Runs on your device</span><span><i></i>Free in your browser</span></p>
+  <p><span><i></i>redacto.cc</span><span><i></i>Runs on your device</span><span><i></i>Free and open source</span></p>
 </div>
 
 <div id="stars"></div>
@@ -153,7 +224,11 @@ const DETAILS = [
   ['MRN 00483921', '[ID_NUMBER_1]', 'Patient ID'],
   ['1842 W Fulton St, Chicago', '[ADDRESS_1]', 'Address'],
   ['Dr. James Whitfield', '[PERSON_2]', 'Doctor'],
+  ['Maria Delgado', '[PERSON_1]', 'Name'],   // in the browser, offline
 ];
+const flagAt = (i) => (i < 5 ? AT.flags[i] : AT.offline.working - 0.5);
+const swapAt = (i) => (i < 5 ? AT.swaps[i] : AT.offline.working);
+const CODE = '<span class="c">/**\n * Serving them from the same origin keeps the app\'s\n * Content-Security-Policy intact: the browser never\n * talks to any other site.\n */</span>\n<span class="k">const</span> upstream = <span class="k">await</span> env.ASSETS.fetch(request);';
 const QUESTION = 'What should I be concerned about?';
 const REPLY = 'Your HbA1c of 6.8% is in the diabetes range, and your LDL of 168 mg/dL is high. Both are worth discussing with your doctor.';
 
@@ -161,6 +236,9 @@ const REPLY = 'Your HbA1c of 6.8% is in the diabetes range, and your LDL of 168 
 const CHAT_HOME = { x: 960, y: 290, w: 820 };
 const REPORT_HOME = { x: 990, y: 195, w: 760 };
 const CHIP_IN_CHAT = { x: CHAT_HOME.x + 26, y: CHAT_HOME.y + 560 - 26 - 72 - 14 - 46, w: 230 };   // where the attachment sits
+
+/** The trust scene clears just before the end card. */
+const outEnd = (t) => ramp(AT.end[0] - 0.4, AT.end[0], t);
 
 function layout(t) {
   const L = {};
@@ -183,10 +261,44 @@ function layout(t) {
   const p = spring(t, AT.pill, 0.5, 14);
   L.pill = { x: 120, y: mix(-120, 660, p), o: lim((t - AT.pill) * 6) * (1 - outK) };
   L.end = { o: endK, y: (1 - endK) * 40 };
+
+  // How it works: the model card, its size shrinking, the model flying into a browser.
+  const H = AT.how, O = AT.offline, T = AT.trust;
+  const howK = ramp(H.card - 0.1, H.card + 0.35, t) * (1 - ramp(O.in - 0.35, O.in, t));
+  L.card = { x: 990, y: 200 + (1 - spring(t, H.card - 0.1, 0.7, 12)) * 60, s: 1.3, o: howK };
+  L.shrink = easeOut(span(t, H.shrink[0], H.shrink[1]));
+  // The browser enters as the model lands, then moves centre stage for the offline scene.
+  const toCentre = ease(span(t, O.in, O.in + 0.8));
+  const browserIn = ramp(H.browser[0] - 0.35, H.browser[0] + 0.15, t);
+  L.browser = {
+    x: mix(1560, 990, toCentre), y: mix(300, 200, toCentre) + (1 - spring(t, H.browser[0] - 0.35, 0.7, 12)) * 50,
+    s: mix(0.55, 1.15, toCentre), o: browserIn * (1 - ramp(T.in - 0.35, T.in, t)),
+  };
+  const fly = span(t, H.browser[0], H.browser[1]);
+  L.block = {
+    x: mix(1040 + 430 * (125 / 497), 1610, ease(fly)), y: mix(560, 400, ease(fly)) - Math.sin(Math.PI * fly) * 110,
+    s: 1, o: fly > 0 && fly < 1 ? 1 : 0,
+  };
+  L.wifi = { x: 1690, y: 270, s: 1.05, o: ramp(O.in + 0.3, O.in + 0.8, t) * (1 - ramp(T.in - 0.35, T.in, t)) };
+  // Trust the code: the repository card, then the open-source badge.
+  const ghK = ramp(T.card - 0.15, T.card + 0.3, t) * (1 - outEnd(t));
+  L.gh = { x: 980, y: 130 + (1 - spring(t, T.card - 0.15, 0.7, 12)) * 60, s: 1.1, o: ghK };
+  L.oss = { x: 1290, y: 880 + (1 - spring(t, T.oss, 0.5, 14)) * 40, s: 0.85 + 0.15 * spring(t, T.oss, 0.45, 16), o: lim((t - T.oss) * 6) * (1 - outEnd(t)) };
   return L;
 }
 
 /* ---------------------------------------------------------------- drawing */
+const CODE_TEXT = CODE.replace(/<[^>]+>/g, '');
+/** The first n visible characters of CODE, with its colour spans kept. */
+function codeUpTo(n) {
+  let out = '', seen = 0;
+  for (const part of CODE.split(/(<[^>]+>)/)) {
+    if (part.startsWith('<')) { out += part; continue; }
+    if (seen >= n) continue;
+    const take = part.slice(0, n - seen); out += take.replace(/&/g, '&amp;'); seen += take.length;
+  }
+  return out;
+}
 const caps = CAPTIONS.map(([, , html]) => {
   const d = document.createElement('div'); d.className = 'it caption'; d.innerHTML = html; el('caps').appendChild(d); return d;
 });
@@ -226,6 +338,35 @@ function draw(t) {
     endParts[i].style.opacity = k; endParts[i].style.transform = `translateY(${(1 - k) * 18}px)`;
   });
 
+  // How it works / offline / trust the code
+  place(el('modelCard'), L.card.x, L.card.y, 1, L.card.o);
+  el('details').style.opacity = ramp(AT.how.details, AT.how.details + 0.35, t);
+  el('sizeBar').style.width = `${mix(330, 330 * 125 / 497, L.shrink)}px`;
+  el('sizeBar').style.background = L.shrink > 0.5 ? 'var(--primary)' : 'var(--ink)';
+  el('sizeLabel').textContent = L.shrink < 0.5 ? '497 MB · float32' : '125 MB · int8';
+  el('sizeNote').style.opacity = ramp(AT.how.shrink[1] - 0.1, AT.how.shrink[1] + 0.3, t);
+  place(el('modelBlock'), L.block.x, L.block.y, 1, L.block.o);
+  place(el('browser'), L.browser.x, L.browser.y, L.browser.s, L.browser.o);
+  const landed = t >= AT.how.browser[1];
+  el('mModel').style.opacity = landed ? ramp(AT.how.browser[1], AT.how.browser[1] + 0.3, t) : 0;
+  const dl = span(t, AT.offline.download[0], AT.offline.download[1]);
+  el('dlRow').style.opacity = t >= AT.offline.download[0] && t < AT.offline.download[1] + 0.5 ? 1 : 0;
+  el('dlFill').style.width = `${Math.round(dl * 100)}%`;
+  el('dlPct').textContent = `${Math.round(dl * 100)}%`;
+  el('dlText').textContent = dl < 1 ? 'Downloading Accurate…' : 'Downloaded';
+  el('mStored').style.opacity = ramp(AT.offline.download[1] + 0.3, AT.offline.download[1] + 0.6, t);
+  el('mWork').style.opacity = ramp(AT.offline.wifi + 0.4, AT.offline.wifi + 0.7, t);
+  el('readyBadge').style.opacity = ramp(AT.offline.wifi, AT.offline.wifi + 0.3, t);
+  place(el('wifiWrap'), L.wifi.x, L.wifi.y, 1, L.wifi.o);
+  const off = ramp(AT.offline.wifi, AT.offline.wifi + 0.35, t);
+  el('wifiSlash').style.strokeDashoffset = `${26 * (1 - off)}`;
+  el('wifi').style.color = off > 0.5 ? 'var(--mute)' : 'var(--ink)';
+  el('wifiLabel').textContent = off > 0.5 ? 'Wi-Fi off' : 'Wi-Fi on';
+  place(el('gh'), L.gh.x, L.gh.y, 1, L.gh.o);
+  const chars = Math.round(span(t, AT.trust.card + 0.2, AT.trust.oss) * CODE_TEXT.length);
+  el('code').innerHTML = codeUpTo(chars);
+  place(el('oss'), L.oss.x, L.oss.y, L.oss.s, L.oss.o);
+
   // Chat: attachment, typing, sending, reply.
   const sent = t >= AT.send, clean = t >= AT.collapse[1] - 0.15;
   const a = spring(t, AT.attach, 0.5, 18);
@@ -245,18 +386,18 @@ function draw(t) {
 
   // Report: flag each detail, then swap it for its label with a sparkle.
   vals.forEach((v, i) => {
-    const flagged = t >= AT.flags[i], swapped = t >= AT.swaps[i];
+    const flagged = t >= flagAt(i), swapped = t >= swapAt(i);
     const [, label] = DETAILS[i];
     if (swapped) {
       if (v.dataset.state !== 'swap') { v.innerHTML = `<span class="chip">${label}</span>`; v.dataset.state = 'swap'; }
-      v.firstChild.style.transform = `scale(${0.82 + 0.18 * spring(t, AT.swaps[i], 0.45, 20)})`;
+      v.firstChild.style.transform = `scale(${0.82 + 0.18 * spring(t, swapAt(i), 0.45, 20)})`;
       v.classList.remove('flag');
     } else {
       if (v.dataset.state === 'swap') { v.innerHTML = `<span class="orig">${DETAILS[i][0]}</span><span class="tag">${DETAILS[i][2]}</span>`; }
       v.dataset.state = flagged ? 'flag' : 'plain';
       v.classList.toggle('flag', flagged);
-      const tag = v.querySelector('.tag'), k = spring(t, AT.flags[i], 0.55, 20);
-      tag.style.opacity = flagged ? lim((t - AT.flags[i]) * 10) : 0;
+      const tag = v.querySelector('.tag'), k = spring(t, flagAt(i), 0.55, 20);
+      tag.style.opacity = flagged && i < 5 ? lim((t - flagAt(i)) * 10) : 0;
       tag.style.transform = `translate(${(1 - k) * -10}px,-50%)`;
     }
   });
@@ -270,7 +411,7 @@ function draw(t) {
 
   // Sparkles around each new label.
   vals.forEach((v, i) => {
-    const s = t - AT.swaps[i], live = s > 0 && s < 0.9 && L.report.o > 0.5;
+    const s = t - swapAt(i), live = s > 0 && s < 0.9 && (i < 5 ? L.report.o > 0.5 : L.browser.o > 0.5);
     const box = live ? v.getBoundingClientRect() : null;
     for (let j = 0; j < STARS_PER; j++) {
       const star = stars[i * STARS_PER + j];
@@ -289,7 +430,8 @@ function draw(t) {
 function travel(t0, t1) {
   const A = layout(t0), B = layout(t1);
   const d = (p, q) => Math.hypot(q.x - p.x, q.y - p.y) + Math.abs(q.s - p.s) * 800;
-  return Math.max(d(A.chat, B.chat), d(A.report, B.report), Math.abs(B.pill.y - A.pill.y), Math.abs(B.end.y - A.end.y));
+  return Math.max(d(A.chat, B.chat), d(A.report, B.report), Math.abs(B.pill.y - A.pill.y), Math.abs(B.end.y - A.end.y),
+    d(A.card, B.card), d(A.browser, B.browser), d(A.block, B.block), d(A.gh, B.gh), d(A.oss, B.oss));
 }
 
 window.film = {

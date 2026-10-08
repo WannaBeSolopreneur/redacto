@@ -1,9 +1,9 @@
 # Redacto demo film
 
-23.5 s, 1920x1080, 30 fps, with voice-over. Rendered from code: no video editor, no stock footage, no sample files.
+42.5 s, 1920x1080, 30 fps, with voice-over: the lab-report story, how it works (open-source models, quantised, offline), "trust the code", and the tagline. Rendered from code: no video editor, no stock footage, no sample files.
 
     python3 -m venv .venv && .venv/bin/pip install numpy pillow playwright   # once
-    .venv/bin/python vo/make_take.py 7                       # only to re-record: vo/script.txt -> vo/take_7.mp3 + word times
+    .venv/bin/python vo/make_take.py 7                       # only to re-record: vo/script.txt -> vo/take_N.mp3 + word times (set TAKE in timing.js)
     .venv/bin/python sound.py                                # -> sound.wav (effects, all synthesised)
     ./mix.sh                                                 # voice over ducked effects -> mix.wav
     .venv/bin/python render.py --audio mix.wav              # -> redacto-demo.mp4 (~30 s)

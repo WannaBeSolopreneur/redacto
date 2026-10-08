@@ -113,6 +113,32 @@ at(swish(0.6, 2400, 400), T["collapse"][0] - 0.02, 0.26, RIGHT, 0.45)
 at(tick(2600, 0.04), T["send"] - 0.02, 0.5, RIGHT); at(blip(600, 0.18), T["send"] + 0.01, 0.18, RIGHT)
 # the answer arrives
 at(blip(780, 0.2), T["reply"][0] - 0.02, 0.12, RIGHT)
+# How it works: the model card, the shrink, the model landing in the browser
+H, O, TR = T["how"], T["offline"], T["trust"]
+at(swish(0.5, 400, 2200), H["card"] - 0.15, 0.22, RIGHT, 0.4)
+at(tick(2000, 0.05), H["card"] + 0.2, 0.35, RIGHT, 0.15)
+at(swish(1.0, 3200, 300), H["shrink"][0], 0.30, RIGHT, 0.35)
+at(thump(62, 0.6), H["shrink"][1] - 0.05, 0.40, RIGHT, 0.3)
+at(chime(988, 1.0), H["shrink"][1] + 0.05, 0.06, RIGHT, 0.6)
+at(swish(0.55, 600, 2600), H["browser"][0], 0.22, RIGHT, 0.4, pan_to=0.6)
+at(blip(620, 0.2), H["browser"][1], 0.22, 0.6)
+# Download once: ticks climbing with the bar, then a soft done
+d0, d1 = O["download"]
+for i in range(10):
+    at(tick(1800 + i * 160, 0.03), d0 + i * (d1 - d0) / 10, 0.16, 0.2, 0.08)
+at(blip(880, 0.22), d1, 0.18, 0.2)
+# Wi-Fi off: a switch click and a falling tone; it keeps working (the sparkle again)
+at(tick(1400, 0.06), O["wifi"], 0.5, 0.5, 0.1)
+tt = t_(0.5); at(np.sin(2 * np.pi * np.cumsum(700 * np.exp(-tt * 2.2)) / SR) * np.exp(-tt * 6), O["wifi"] + 0.03, 0.12, 0.5, 0.3)
+at(chime(784, 1.2), O["working"], 0.13, 0.1, 0.6)
+at(twinkle(3000, 0.7), O["working"] + 0.02, 0.07, 0.1, 0.5)
+# Trust the code: the repository card, the code typing, the badge
+at(swish(0.5, 300, 1800), TR["card"] - 0.2, 0.22, RIGHT, 0.4)
+at(thump(58, 0.7), TR["card"] + 0.15, 0.42, RIGHT, 0.35)
+for i in range(18):
+    at(tick(rng.uniform(2800, 3800), 0.025), TR["card"] + 0.3 + i * (TR["oss"] - TR["card"] - 0.4) / 18, 0.06, RIGHT, 0.05)
+at(chime(1047, 1.4), TR["oss"], 0.10, RIGHT, 0.6); at(twinkle(3200, 0.7, 8), TR["oss"] + 0.03, 0.05, RIGHT, 0.5)
+
 # the end card: logo, then the headline as it's spoken
 at(swish(0.6, 2000, 300), T["out"][0], 0.2, RIGHT, 0.5)
 e = T["end"][0]
