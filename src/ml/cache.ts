@@ -15,22 +15,21 @@ async function open(): Promise<Cache | null> {
   }
 }
 
-/** Model id → bytes on this device, for models whose weights are fully stored. */
+/**
+ * Model id → size of the models stored on this device.
+ *
+ * Only the list of stored file names is read, never a file. Opening a stored 67-357 MB model just to read its
+ * size (cache.match) can make Safari hold the whole file in memory, and doing that on the start screen, on
+ * Activate and in Settings, on top of the model's own load, crashed iPhones once a model was stored. Sizes come
+ * from the model catalogue.
+ */
 export async function downloadedModels(): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   const cache = await open();
   if (!cache) return out;
-  const keys = await cache.keys();
+  const paths = (await cache.keys()).map((r) => new URL(r.url).pathname);
   for (const m of MODELS) {
-    const files = keys.filter((r) => new URL(r.url).pathname.includes(prefix(m.id)));
-    const weights = files.find((r) => r.url.endsWith(`/${m.file}`));
-    if (!weights) continue;
-    let bytes = 0;
-    for (const r of files) {
-      const res = await cache.match(r);
-      bytes += Number(res?.headers.get('content-length') ?? 0);
-    }
-    out.set(m.id, bytes || m.sizeMB * 1e6);
+    if (paths.some((p) => p.includes(prefix(m.id)) && p.endsWith(`/${m.file}`))) out.set(m.id, m.sizeMB * 1e6);
   }
   return out;
 }

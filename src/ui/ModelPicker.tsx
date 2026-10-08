@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { downloadedModels, removeModel } from '../ml/cache';
-import { MODELS } from '../ml/models';
+import { IS_PHONE, MODELS } from '../ml/models';
 import { store, updateSettings } from '../state/app';
 import { useSlice } from '../state/store';
 
@@ -43,7 +43,12 @@ export function ModelPicker({ stored, refresh, disabled }: { stored: Map<string,
         >
           <RadioGroupItem id={m.id} value={m.id} className="mt-0.5" />
           <span className="flex flex-1 flex-col gap-0.5">
-            <span className="text-sm font-medium">{m.name}</span>
+            <span className="flex items-center gap-2 text-sm font-medium">
+              {m.name}
+              {IS_PHONE && m.sizeMB > 150 && (
+                <span className="border border-amber-300 bg-amber-50 px-1.5 text-[10px] font-semibold tracking-wide text-amber-800 uppercase">Heavy for phones</span>
+              )}
+            </span>
             <span className="text-xs text-muted-foreground">{m.description}</span>
             {stored.has(m.id) ? (
               <span className="mt-1 flex items-center gap-2 text-xs text-teal-700">
