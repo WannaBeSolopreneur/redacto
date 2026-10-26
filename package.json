@@ -22,11 +22,11 @@
     "@huggingface/transformers": "^4.3.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-virtual": "^3.14.13",
-    "@xmldom/xmldom": "https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.8.12.tgz",
+    "@xmldom/xmldom": "^0.8.15",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "core-js": "^3.50.0",
-    "fflate": "^0.8.2",
+    "fflate": "^0.8.3",
     "lucide-react": "^1.53.0",
     "papaparse": "^5.7.0",
     "pdf-lib": "^1.17.1",
@@ -47,10 +47,10 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
-    "playwright": "^1.49.1",
+    "playwright": "^1.55.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.3",
-    "wrangler": "^4.149.0"
+    "wrangler": "^4.153.0"
   }
 }

@@ -1,0 +1,3 @@
+[mcp_servers.offense]
+url = "https://app.purpleteam.sh/mcp"
+tool_timeout_sec = 120

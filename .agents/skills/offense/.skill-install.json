@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "offense",
+  "releaseVersion": "0.5.0",
+  "files": {
+    "SKILL.md": {
+      "upstreamSha256": "9672de3abf95da1fbc4e148e1becacc6d1a6aa6159220f0bd14f19b170346d9c",
+      "localSha256": "9672de3abf95da1fbc4e148e1becacc6d1a6aa6159220f0bd14f19b170346d9c",
+      "customized": false
+    },
+    "references/install.md": {
+      "upstreamSha256": "a56c95544abcb7524ba4ea210b22b47618e3ce4fdffd531b003cec4e6936942e",
+      "localSha256": "a56c95544abcb7524ba4ea210b22b47618e3ce4fdffd531b003cec4e6936942e",
+      "customized": false
+    },
+    "references/verification.md": {
+      "upstreamSha256": "3b1c29416c39b5911d2f5b19b16433c76187c872cf8a9007b7a8f916cbd52634",
+      "localSha256": "3b1c29416c39b5911d2f5b19b16433c76187c872cf8a9007b7a8f916cbd52634",
+      "customized": false
+    },
+    "scripts/offense.mjs": {
+      "upstreamSha256": "658faf0e3dcc5d3c7e5ccad6f07dd37be0033a29f238e75b7714ed2e41f6f9e5",
+      "localSha256": "658faf0e3dcc5d3c7e5ccad6f07dd37be0033a29f238e75b7714ed2e41f6f9e5",
+      "customized": false
+    },
+    "scripts/update.mjs": {
+      "upstreamSha256": "c9929b1ec98fe316b730090d48f62b25500c3f1f2fe53a70b99eceb9203777e8",
+      "localSha256": "c9929b1ec98fe316b730090d48f62b25500c3f1f2fe53a70b99eceb9203777e8",
+      "customized": false
+    }
+  }
+}

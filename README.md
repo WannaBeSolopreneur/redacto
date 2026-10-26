@@ -95,7 +95,7 @@ nothing is sent.
 
 ## Quick start
 
-Requirements: Node 20.19+ (or 22.12+) and Python 3 (only for building the models once).
+Requirements: Node 22.12+ and Python 3 (only for building the models once). Wrangler's development/deployment tooling requires Node 22+.
 
 ```bash
 git clone https://github.com/WannaBeSolopreneur/redacto.git
